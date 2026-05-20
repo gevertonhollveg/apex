@@ -136,7 +136,39 @@ function rankingsFilterRemove() {
 	}, delay);
 }
 
+function rankingsApplyClassFilter(selectElement) {
+	if(!selectElement) {
+		rankingsFilterRemove();
+		return;
+	}
+
+	var rawValue = (selectElement.value || '').trim();
+	if(rawValue == '') {
+		rankingsFilterRemove();
+		return;
+	}
+
+	var classList = rawValue.split(',').map(function(item) {
+		return parseInt(item, 10);
+	}).filter(function(item) {
+		return !isNaN(item);
+	});
+
+	if(classList.length == 0) {
+		rankingsFilterRemove();
+		return;
+	}
+
+	rankingsFilterByClass.apply(null, classList);
+}
+
 $(function() {
+	if($("#rankingsClassFilter").length) {
+		$('#rankingsClassFilter').on('change', function() {
+			rankingsApplyClassFilter(this);
+		});
+	}
+
 	if($(".rankings-class-filter-selection").length) {
 		$('a.rankings-class-filter-selection').click(function(){
 			$('a.rankings-class-filter-selection').addClass("rankings-class-filter-grayscale");

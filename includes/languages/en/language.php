@@ -335,6 +335,7 @@ $lang['rankings_txt_34'] = 'Location';
 $lang['rankings_txt_35'] = 'Pk Level';
 
 # rankings class filter
+$lang['rankings_filter_label'] = 'Filter by class';
 $lang['rankings_filter_1'] = 'All';
 $lang['rankings_filter_2'] = 'Wizards';
 $lang['rankings_filter_3'] = 'Knights';

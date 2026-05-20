@@ -407,16 +407,25 @@ class Rankings {
 	public function rankingsFilterMenu() {
 		$filterData = $this->_getRankingsFilterData();
 		if(!is_array($filterData)) return;
+
+		$filterLabel = lang('rankings_filter_label');
+		if($filterLabel == 'ERROR') {
+			$filterLabel = lang('rankings_txt_11');
+		}
+
+		$filterAll = lang('rankings_filter_1');
+		if($filterAll == 'ERROR') {
+			$filterAll = 'All';
+		}
 		
-		echo '<div class="text-center">';
-			echo '<ul class="rankings-class-filter">';
-				
-				echo '<li><a onclick="rankingsFilterRemove()" class="rankings-class-filter-selection">'.getPlayerClassAvatar(-1, true, false, 'rankings-class-filter-image').'<br />'.lang('rankings_filter_1').'</a></li>';
-				
+		echo '<div class="text-center rankings-class-filter-select-wrapper">';
+			echo '<label class="rankings-class-filter-label" for="rankingsClassFilter">'.$filterLabel.'</label>';
+			echo '<select id="rankingsClassFilter" class="form-control rankings-class-filter-select" onchange="rankingsApplyClassFilter(this)">';
+				echo '<option value="">'.$filterAll.'</option>';
 				foreach($filterData as $row) {
-					echo '<li><a onclick="rankingsFilterByClass('.$row[1].')" class="rankings-class-filter-selection rankings-class-filter-grayscale">'.getPlayerClassAvatar($row[0], true, false, 'rankings-class-filter-image').'<br />'.$row[2].'</a></li>';
+					echo '<option value="'.$row[1].'">'.$row[2].'</option>';
 				}
-			echo '</ul>';
+			echo '</select>';
 		echo '</div>';
 	}
 

@@ -153,3 +153,181 @@ select.form-control {
 .g-recaptcha {
     margin: 12px 0;
 }
+
+/* Module pages */
+.content-wrapper h2,
+.module-section-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin: 28px 0 14px;
+    font-weight: 700;
+}
+
+.module-section-title i {
+    margin-right: 8px;
+    color: var(--gold-light);
+}
+
+.module-info {
+    color: var(--text-primary);
+}
+
+.module-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.module-info-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+}
+
+.module-info-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.module-info-label i {
+    color: var(--gold);
+    margin-right: 6px;
+}
+
+.module-info-value {
+    margin-top: 6px;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.content-wrapper .table.module-table {
+    width: 100%;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.content-wrapper .table.module-table > thead > tr > th {
+    background: var(--bg-card);
+    color: var(--gold);
+    border: 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 12px 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+}
+
+.content-wrapper .table.module-table > tbody > tr > td {
+    background: transparent !important;
+    color: var(--text-primary);
+    border: 0 !important;
+    border-top: 1px solid rgba(212,168,83,0.08) !important;
+    padding: 12px 14px;
+    vertical-align: middle;
+}
+
+.content-wrapper .table.module-table > tbody > tr:nth-child(even) > td {
+    background: rgba(255,255,255,0.02) !important;
+}
+
+.content-wrapper .table.module-table > tbody > tr:hover > td {
+    background: rgba(212,168,83,0.06) !important;
+}
+
+.content-wrapper .table.module-table code {
+    background: rgba(212,168,83,0.1);
+    color: var(--gold-light);
+    border: 1px solid rgba(212,168,83,0.2);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 12px;
+}
+
+/* Global module polish */
+.content-wrapper .page-title span {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-wrapper .page-title span::before {
+    content: "\f0da";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--gold-light);
+    font-size: 16px;
+}
+
+.content-wrapper .panel-title {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.content-wrapper .table {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.content-wrapper .table > thead > tr > th,
+.content-wrapper .table > tbody > tr:first-child > th {
+    background: rgba(255,255,255,0.02);
+    color: var(--gold);
+    border-top: 0 !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 11px 13px;
+}
+
+.content-wrapper .table > tbody > tr > td,
+.content-wrapper .table > tfoot > tr > td {
+    background: transparent !important;
+    border-top: 1px solid rgba(212,168,83,0.08) !important;
+    padding: 11px 13px;
+}
+
+.content-wrapper .table.table-striped > tbody > tr:nth-of-type(odd) > td,
+.content-wrapper .table > tbody > tr:nth-child(even) > td {
+    background: rgba(255,255,255,0.02) !important;
+}
+
+.content-wrapper .table.table-hover > tbody > tr:hover > td,
+.content-wrapper .table > tbody > tr:hover > td {
+    background: rgba(212,168,83,0.06) !important;
+}
+
+.content-wrapper .table a {
+    color: var(--gold-light);
+}
+
+.content-wrapper .table a:hover {
+    color: var(--gold);
+}
+
+.content-wrapper .table code {
+    background: rgba(212,168,83,0.1);
+    color: var(--gold-light);
+    border: 1px solid rgba(212,168,83,0.2);
+    border-radius: 6px;
+    padding: 2px 7px;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper .table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+    }
+}

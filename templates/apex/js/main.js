@@ -82,31 +82,72 @@ $(function() {
 
 // ═══════════ AUTH MODAL ═══════════
 function openAuthModal(tab) {
-    $('#modalBackdrop').addClass('active');
+    if (!$('#authModal').length) return;
+    $('#authModalBackdrop').addClass('active');
     $('#authModal').addClass('active');
     switchAuthTab(tab || 'login');
     $('body').css('overflow', 'hidden');
 }
 
 function closeAuthModal() {
-    $('#modalBackdrop').removeClass('active');
+    $('#authModalBackdrop').removeClass('active');
     $('#authModal').removeClass('active');
     $('body').css('overflow', '');
 }
 
 function switchAuthTab(tab) {
+    var $loginForm = $('#loginForm');
+    var $registerForm = $('#registerForm');
+
     if (tab === 'login') {
         $('#tabLogin').addClass('active');
         $('#tabRegister').removeClass('active');
-        $('#loginForm').show();
-        $('#registerForm').hide();
+        $('#tabLogin').attr('aria-selected', 'true');
+        $('#tabRegister').attr('aria-selected', 'false');
+        $loginForm.attr('aria-hidden', 'false');
+        $registerForm.attr('aria-hidden', 'true');
+
+        if (!$loginForm.is(':visible')) {
+            $registerForm.stop(true, true).fadeOut(120, function() {
+                $loginForm.stop(true, true).fadeIn(140, function() {
+                    $loginForm.find('input[name="webengineLogin_user"]').trigger('focus');
+                });
+            });
+        } else {
+            $loginForm.find('input[name="webengineLogin_user"]').trigger('focus');
+        }
     } else {
         $('#tabLogin').removeClass('active');
         $('#tabRegister').addClass('active');
-        $('#loginForm').hide();
-        $('#registerForm').show();
+        $('#tabLogin').attr('aria-selected', 'false');
+        $('#tabRegister').attr('aria-selected', 'true');
+        $loginForm.attr('aria-hidden', 'true');
+        $registerForm.attr('aria-hidden', 'false');
+
+        if (!$registerForm.is(':visible')) {
+            $loginForm.stop(true, true).fadeOut(120, function() {
+                $registerForm.stop(true, true).fadeIn(140, function() {
+                    $registerForm.find('input[name="webengineRegister_user"]').trigger('focus');
+                });
+            });
+        } else {
+            $registerForm.find('input[name="webengineRegister_user"]').trigger('focus');
+        }
     }
 }
+
+$(function() {
+    $('#authModal form').on('submit', function(e) {
+        var $form = $(this);
+        if ($form.data('submitting')) {
+            e.preventDefault();
+            return false;
+        }
+
+        $form.data('submitting', true);
+        $form.find('button[type="submit"]').addClass('is-loading').prop('disabled', true);
+    });
+});
 
 // Close modal on ESC
 $(document).on('keydown', function(e) {
@@ -178,7 +219,39 @@ function rankingsFilterRemove() {
     }, delay);
 }
 
+function rankingsApplyClassFilter(selectElement) {
+    if (!selectElement) {
+        rankingsFilterRemove();
+        return;
+    }
+
+    var rawValue = (selectElement.value || '').trim();
+    if (rawValue === '') {
+        rankingsFilterRemove();
+        return;
+    }
+
+    var classList = rawValue.split(',').map(function(item) {
+        return parseInt(item, 10);
+    }).filter(function(item) {
+        return !isNaN(item);
+    });
+
+    if (classList.length === 0) {
+        rankingsFilterRemove();
+        return;
+    }
+
+    rankingsFilterByClass.apply(null, classList);
+}
+
 $(function() {
+    if ($('#rankingsClassFilter').length) {
+        $('#rankingsClassFilter').on('change', function() {
+            rankingsApplyClassFilter(this);
+        });
+    }
+
     if ($(".rankings-class-filter-selection").length) {
         $('a.rankings-class-filter-selection').click(function() {
             $('a.rankings-class-filter-selection').addClass("rankings-class-filter-grayscale");

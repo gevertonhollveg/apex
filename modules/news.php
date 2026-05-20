@@ -49,6 +49,7 @@ try {
 		$news_author = $newsArticle['news_author'];
 		$news_date = $newsArticle['news_date'];
 		$news_url = __BASE_URL__.'news/'.$news_id.'/';
+		$news_date_format = date("F j, Y", $news_date);
 		
 		// translated news title
 		if(config('language_switch_active',true)) {
@@ -71,22 +72,42 @@ try {
 		echo '<div class="panel panel-news">';
 			echo '<div class="panel-heading">';
 				echo '<h3 class="panel-title"><a href="'.$news_url.'">'.$news_title.'</a></h3>';
+				echo '<div class="news-meta">';
+					echo '<span><i class="fa-regular fa-user"></i> '.$news_author.'</span>';
+					echo '<span><i class="fa-regular fa-calendar"></i> '.$news_date_format.'</span>';
+				echo '</div>';
 			echo '</div>';
 			if(mconfig('news_expanded') > $i) {
 				echo '<div class="panel-body">';
-					echo $loadNewsCache;
+					echo '<div class="news-content">';
+						echo $loadNewsCache;
+					echo '</div>';
 				echo '</div>';
 				echo '<div class="panel-footer">';
-					echo '<div class="col-xs-6 nopadding">';
-					echo '</div>';
-					echo '<div class="col-xs-6 nopadding text-right">';
-						echo date("l, F jS Y",$news_date);
-					echo '</div>';
+					echo '<a href="'.$news_url.'" class="news-footer-link"><i class="fa-solid fa-book-open"></i> '.lang('news_txt_2').'</a>';
 				echo '</div>';
 			}
 		echo '</div>';
 		
 		$i++;
+	}
+
+	// Pagination logic
+	$newsPerPage = mconfig('news_list_limit');
+	$totalNews = count($cachedNews);
+	$totalPages = ceil($totalNews / $newsPerPage);
+	$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? max(1, min($totalPages, (int)$_GET['page'])) : 1;
+	$startIndex = ($currentPage - 1) * $newsPerPage;
+	$cachedNews = array_slice($cachedNews, $startIndex, $newsPerPage);
+
+	// Pagination controls
+	if($totalPages > 1) {
+		echo '<div class="news-pagination">';
+		for($i = 1; $i <= $totalPages; $i++) {
+			$activeClass = $i === $currentPage ? 'active' : '';
+			echo '<a href="'.__BASE_URL__.'news?page='.$i.'" class="pagination-link '.$activeClass.'">'.$i.'</a>';
+		}
+		echo '</div>';
 	}
 
 } catch(Exception $ex) {

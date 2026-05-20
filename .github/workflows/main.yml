@@ -1,0 +1,30 @@
+name: Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main   # dispara quando há merge ou push na main
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Deploy via FTP (incremental)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+        with:
+          server: ftp.apexmu.com
+          port: 21
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp   # FTPS explícito
+          local-dir: ./    # raiz do repositório
+          server-dir: ./
+          # opções extras para controle:
+          exclude: |
+            **/.git*
+            **/.github*
+            **/node_modules/**

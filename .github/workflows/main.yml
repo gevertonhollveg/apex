@@ -29,3 +29,4 @@ jobs:
             **/.github*
             **/node_modules/**
           incremental-only: false   # Força atualização completa
+          chmod: 777   # Define permissões máximas para os arquivos enviados

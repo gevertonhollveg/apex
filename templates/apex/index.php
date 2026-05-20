@@ -68,10 +68,10 @@ if(!isset($_REQUEST['subpage'])) {
         <div class="navbar-right">
             <?php if(!isLoggedIn()): ?>
                 <button class="btn-nav btn-nav-ghost" onclick="openAuthModal('login')">
-                    <i class="fa-solid fa-right-to-bracket"></i> <?php echo lang('module_titles_txt_2', true); ?>
+                    <i class="fa-solid fa-right-to-bracket"></i> <?php echo lang('menu_txt_4', true); ?>
                 </button>
                 <button class="btn-nav btn-nav-primary" onclick="openAuthModal('register')">
-                    <i class="fa-solid fa-user-plus"></i> <?php echo lang('module_titles_txt_3', true); ?>
+                    <i class="fa-solid fa-user-plus"></i> <?php echo lang('menu_txt_3', true); ?>
                 </button>
             <?php else: ?>
                 <a href="<?php echo __BASE_URL__; ?>myaccount" class="btn-nav btn-nav-ghost">

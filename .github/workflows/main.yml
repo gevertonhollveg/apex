@@ -16,7 +16,7 @@ jobs:
       - name: Deploy via FTP (incremental)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.0
         with:
-          server: ftp.apexmu.com
+          server: ftp.apexmu.site
           port: 21
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}

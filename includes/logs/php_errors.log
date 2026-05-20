@@ -1,0 +1,24 @@
+[19-May-2026 13:00:07 UTC] PHP Fatal error:  Uncaught Exception: WebEngine's configuration file is empty, please run the installation script. in /home3/apexmuc1/public_html/includes/functions.php:260
+Stack trace:
+#0 /home3/apexmuc1/public_html/includes/webengine.php(117): webengineConfigs()
+#1 /home3/apexmuc1/public_html/includes/cron/cron.php(18): include_once('/home3/apexmuc1...')
+#2 {main}
+  thrown in /home3/apexmuc1/public_html/includes/functions.php on line 260
+[19-May-2026 13:15:04 UTC] PHP Fatal error:  Uncaught Exception: WebEngine's configuration file is empty, please run the installation script. in /home3/apexmuc1/public_html/includes/functions.php:260
+Stack trace:
+#0 /home3/apexmuc1/public_html/includes/webengine.php(117): webengineConfigs()
+#1 /home3/apexmuc1/public_html/includes/cron/cron.php(18): include_once('/home3/apexmuc1...')
+#2 {main}
+  thrown in /home3/apexmuc1/public_html/includes/functions.php on line 260
+[19-May-2026 13:30:04 UTC] PHP Fatal error:  Uncaught Exception: WebEngine's configuration file is empty, please run the installation script. in /home3/apexmuc1/public_html/includes/functions.php:260
+Stack trace:
+#0 /home3/apexmuc1/public_html/includes/webengine.php(117): webengineConfigs()
+#1 /home3/apexmuc1/public_html/includes/cron/cron.php(18): include_once('/home3/apexmuc1...')
+#2 {main}
+  thrown in /home3/apexmuc1/public_html/includes/functions.php on line 260
+[19-May-2026 13:45:04 UTC] PHP Fatal error:  Uncaught Exception: WebEngine's configuration file is empty, please run the installation script. in /home3/apexmuc1/public_html/includes/functions.php:260
+Stack trace:
+#0 /home3/apexmuc1/public_html/includes/webengine.php(117): webengineConfigs()
+#1 /home3/apexmuc1/public_html/includes/cron/cron.php(18): include_once('/home3/apexmuc1...')
+#2 {main}
+  thrown in /home3/apexmuc1/public_html/includes/functions.php on line 260

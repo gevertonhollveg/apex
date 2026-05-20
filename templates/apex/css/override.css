@@ -1,0 +1,155 @@
+/*
+ * WebEngine CMS — Modern Template Override
+ * Bootstrap and general overrides for dark theme
+ */
+
+/* Table overrides */
+.table > tbody > tr > td,
+.table > tbody > tr > th,
+.table > tfoot > tr > td,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > thead > tr > th {
+    border-top: none !important;
+    color: var(--text-primary);
+}
+
+a:focus, a:hover {
+    color: var(--gold-light) !important;
+    text-decoration: none !important;
+}
+
+/* Form controls */
+.form-control {
+    background: var(--bg-secondary) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: var(--text-primary) !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-family: var(--font-body) !important;
+    transition: border 0.2s !important;
+}
+.form-control:focus {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 2px rgba(212,168,83,0.1) !important;
+}
+
+input[type=text], input[type=password], input[type=number], input[type=email] {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-primary);
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+input[type=text]:focus, input[type=password]:focus, input[type=number]:focus, input[type=email]:focus {
+    border-color: var(--gold);
+    outline: none;
+}
+
+/* Utility */
+.nopadding { padding: 0 !important; margin: 0 !important; }
+.vcenter { display: inline-block; vertical-align: middle; float: none; }
+
+/* Thumbnail */
+.thumbnail {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+a.thumbnail:hover,
+a.thumbnail:focus,
+a.thumbnail.active {
+    border-color: var(--gold);
+}
+
+/* Primary Button */
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark)) !important;
+    color: var(--bg-primary) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    transition: all 0.3s !important;
+    font-family: var(--font-body) !important;
+}
+.btn-primary:active, .btn-primary:focus, .btn-primary:hover {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold)) !important;
+    color: var(--bg-primary) !important;
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(212,168,83,0.3) !important;
+    transform: translateY(-1px);
+}
+
+/* Default button */
+.btn-default {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 10px !important;
+}
+.btn-default:hover {
+    background: var(--bg-card-hover) !important;
+}
+
+/* Alert overrides */
+.alert {
+    border-radius: 10px !important;
+    border: none !important;
+    font-size: 14px;
+}
+.alert-success { background: rgba(74,255,145,0.1) !important; color: var(--accent-green) !important; }
+.alert-danger { background: rgba(255,74,106,0.1) !important; color: var(--accent-red) !important; }
+.alert-info { background: rgba(74,158,255,0.1) !important; color: var(--accent-blue) !important; }
+.alert-warning { background: rgba(212,168,83,0.1) !important; color: var(--gold) !important; }
+
+/* Panel overrides */
+.panel {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    color: var(--text-primary) !important;
+    box-shadow: none !important;
+}
+.panel-default > .panel-heading {
+    background: var(--bg-secondary) !important;
+    color: var(--gold) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
+}
+.panel-body {
+    color: var(--text-secondary) !important;
+}
+.panel-footer {
+    background: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Well */
+.well {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    color: var(--text-primary) !important;
+    box-shadow: none !important;
+}
+
+/* Label */
+.label-default { background: var(--bg-secondary); color: var(--text-primary); }
+.label-primary { background: rgba(212,168,83,0.2); color: var(--gold); }
+.label-success { background: rgba(74,255,145,0.15); color: var(--accent-green); }
+.label-danger { background: rgba(255,74,106,0.15); color: var(--accent-red); }
+.label-info { background: rgba(74,158,255,0.15); color: var(--accent-blue); }
+
+.form-horizontal .control-label { text-align: left !important; color: var(--text-secondary); }
+
+/* Select */
+select.form-control {
+    appearance: auto;
+}
+
+/* Recaptcha styling */
+.g-recaptcha {
+    margin: 12px 0;
+}

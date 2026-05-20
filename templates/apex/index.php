@@ -1,12 +1,4 @@
 <?php
-/**
- * WebEngine CMS — Modern Template
- * Based on WebEngine CMS 1.2.6
- *
- * @copyright (c) 2013-2025 Lautaro Angelico, All Rights Reserved
- * Licensed under the MIT license
- * http://opensource.org/licenses/MIT
- */
 
 if(!defined('access') or !access) die();
 include('inc/template.functions.php');

@@ -708,22 +708,71 @@ img { border: 0; max-width: 100%; }
     border-color: var(--gold);
 }
 
-/* ═══════════ HIDE HOME SIDEBAR (login/join banner injected by WebEngine home module) ═══════════ */
-/* The home module outputs a 2-col layout: col-xs-8 news + col-xs-4 sidebar.
-   We hide the sidebar col and make news full-width. */
-.home-news-block { width: 100% !important; }
-.home-news-block + .col-xs-4 { display: none !important; }
-/* Also hide the second row that shows rankings panels beside events */
-.home-news-block ~ .row .col-xs-4:not(.panel-sidebar-events):not(:has(.panel-sidebar-events)) {
-    /* We keep events but hide login/ranking panels in the bottom row */
+/* ═══════════ HOME NEWS + TOP LEVEL ═══════════ */
+.home-news-block {
+    width: 100%;
 }
-/* Hide the login panel and join banner from home module */
-.panel-sidebar:has(form[action*="login"]) { display: none !important; }
-.panel-sidebar:has(input[name="webengineLogin_user"]) { display: none !important; }
-.sidebar-banner { display: none !important; }
-
-/* Move events panel to floating widget — hide it from inline position */
-.panel-sidebar-events { display: none !important; }
+.home-news-block-header {
+    margin-bottom: 8px;
+}
+.home-news-block-header h2 {
+    margin: 0;
+    color: var(--gold);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+}
+.home-news-block-header a {
+    color: var(--gold-light);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+.home-news-block-article {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(212,168,83,0.08);
+    color: var(--text-secondary);
+}
+.home-news-block-article:last-child {
+    border-bottom: 0;
+}
+.home-news-block-article-type {
+    color: var(--gold);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+.home-news-block-article-title a {
+    color: var(--text-primary) !important;
+}
+.home-news-block-article-title a:hover {
+    color: var(--gold) !important;
+}
+.home-news-block-article-date {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.home-ranking-row {
+    margin-top: 20px;
+}
+.panel-home-ranking .panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.news-ranking-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gold-light) !important;
+}
+.rankings-table-home td,
+.rankings-table-home th {
+    font-size: 13px !important;
+}
 
 /* ═══════════ FLOATING BUTTONS (Events + Discord) ═══════════ */
 .floating-widgets {

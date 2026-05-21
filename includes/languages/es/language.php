@@ -295,6 +295,9 @@ $lang['downloads_txt_8'] = 'Descarga de herramientas';
 $lang['news_txt_1'] = 'Publicado por %s, %s';
 $lang['news_txt_2'] = 'Mostrar los comentarios';
 $lang['news_txt_3'] = 'Leer más &rsaquo;';
+$lang['news_txt_4'] = 'Últimas Noticias';
+$lang['news_txt_5'] = 'Ver todas';
+$lang['news_txt_6'] = 'Aviso';
 
 # ranking
 $lang['rankings_txt_1'] = 'Top Level';

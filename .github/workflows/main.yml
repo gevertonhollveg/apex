@@ -28,5 +28,6 @@ jobs:
             **/.git*
             **/.github*
             **/node_modules/**
-          incremental-only: false   # Força atualização completa
+          incremental-only: false   # Não limita ao modo incremental
+          dangerous-clean-slate: true   # Limpa server-dir e envia todos os arquivos novamente
           chmod: 777   # Define permissões máximas para os arquivos enviados

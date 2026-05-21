@@ -250,6 +250,7 @@ $lang['login_txt_4'] = 'forgot your password?';
 $lang['login_txt_5'] = 'You have used %s out of %s login attempts. After all %s have been used, you will be unable to login for 15 minutes.';
 $lang['login_txt_6'] = 'Log Out';
 
+
 # account
 $lang['myaccount_txt_1'] = 'Account Status:';
 $lang['myaccount_txt_2'] = 'Username:';

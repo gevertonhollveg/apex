@@ -293,6 +293,9 @@ $lang['downloads_txt_8'] = 'Įrankių atsisiuntimai';
 $lang['news_txt_1'] = 'Išleido %s, %s';
 $lang['news_txt_2'] = 'parodyti komentarus';
 $lang['news_txt_3'] = 'Skaityti daugiau &rsaquo;';
+$lang['news_txt_4'] = 'Naujausios naujienos';
+$lang['news_txt_5'] = 'Daugiau';
+$lang['news_txt_6'] = 'Pranešimas';
 
 # rankings
 $lang['rankings_txt_1'] = 'Top Lygis';

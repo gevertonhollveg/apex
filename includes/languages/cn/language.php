@@ -293,6 +293,9 @@ $lang['downloads_txt_8'] = '工具下载';
 $lang['news_txt_1'] = 'By %s, %s';
 $lang['news_txt_2'] = '显示评论';
 $lang['news_txt_3'] = '更多 &rsaquo;';
+$lang['news_txt_4'] = '最新新闻';
+$lang['news_txt_5'] = '更多';
+$lang['news_txt_6'] = '公告';
 
 # rankings
 $lang['rankings_txt_1'] = '最高等级';

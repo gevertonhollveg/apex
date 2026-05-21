@@ -293,6 +293,9 @@ $lang['downloads_txt_8'] = 'Descărcare Unelte';
 $lang['news_txt_1'] = 'Publicat de %s, %s';
 $lang['news_txt_2'] = 'arată comentarii';
 $lang['news_txt_3'] = 'Citește mai mult &rsaquo;';
+$lang['news_txt_4'] = 'Ultimele știri';
+$lang['news_txt_5'] = 'Vezi toate';
+$lang['news_txt_6'] = 'Anunț';
  
 # rankings
 $lang['rankings_txt_1'] = 'Top Niveluri';

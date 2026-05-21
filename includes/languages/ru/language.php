@@ -261,6 +261,9 @@ $lang['downloads_txt_8'] = 'Инструменты';
 $lang['news_txt_1'] = 'Опубликовано %s, %s';
 $lang['news_txt_2'] = 'показать комментарии';
 $lang['news_txt_3'] = 'Читать далее &rsaquo;';
+$lang['news_txt_4'] = 'Последние новости';
+$lang['news_txt_5'] = 'Все новости';
+$lang['news_txt_6'] = 'Объявление';
 
 # rankings
 $lang['rankings_txt_1'] = 'Топ Уровень';

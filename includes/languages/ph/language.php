@@ -292,6 +292,9 @@ $lang['downloads_txt_8'] = 'Mga Pag-download ng Tool';
 $lang['news_txt_1'] = 'Inilathala ni %s, %s';
 $lang['news_txt_2'] = 'pakita ang komento';
 $lang['news_txt_3'] = 'magbasa pa &rsaquo;';
+$lang['news_txt_4'] = 'Pinakabagong Balita';
+$lang['news_txt_5'] = 'Tingnan lahat';
+$lang['news_txt_6'] = 'Paunawa';
 
 # rankings
 $lang['rankings_txt_1'] = 'Nangungunang Antas';

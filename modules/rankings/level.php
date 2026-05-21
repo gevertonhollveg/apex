@@ -33,6 +33,8 @@ try {
 	if(!is_array($onlineCharacters)) $onlineCharacters = array();
 	
 	if(mconfig('rankings_class_filter')) $Rankings->rankingsFilterMenu();
+
+	echo '<div class="rankings-table-frame">';
 	
 	echo '<table class="table rankings-table">';
 	echo '<tr>';
@@ -64,6 +66,7 @@ try {
 		$i++;
 	}
 	echo '</table>';
+	echo '</div>';
 	if(mconfig('rankings_show_date')) {
 		echo '<div class="rankings-update-time">';
 		echo ''.lang('rankings_txt_20',true).' ' . date("m/d/Y - h:i A",$ranking_data[0][0]);

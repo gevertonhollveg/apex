@@ -8,6 +8,10 @@ try {
 	// News object
 	$News = new News();
 	$cachedNews = loadCache('news.cache');
+	if(!is_array($cachedNews) || empty($cachedNews)) {
+		$News->updateNewsCacheIndex();
+		$cachedNews = loadCache('news.cache');
+	}
 	if(!is_array($cachedNews)) throw new Exception(lang('error_61'));
 	
 	// Set news language
@@ -43,18 +47,31 @@ try {
 		$News->setId($newsArticle['news_id']);
 		
 		$news_id = $newsArticle['news_id'];
-		$news_title = base64_decode($newsArticle['news_title']);
+		$news_title = $newsArticle['news_title'];
 		$news_author = $newsArticle['news_author'];
 		$news_date = $newsArticle['news_date'];
 		$news_url = __BASE_URL__.'news/'.$news_id.'/';
 		$news_date_format = date("F j, Y", $news_date);
+
+		// Backward compatibility: decode only if value is still base64.
+		$decodedTitle = base64_decode($news_title, true);
+		if($decodedTitle !== false && base64_encode($decodedTitle) === $news_title) {
+			$news_title = $decodedTitle;
+		}
 		
 		// translated news title
 		if(config('language_switch_active',true)) {
 			if(isset($_SESSION['language_display']) && isset($newsArticle['translations']) && is_array($newsArticle['translations']) && array_key_exists($_SESSION['language_display'], $newsArticle['translations'])) {
-				$news_title = base64_decode($newsArticle['translations'][$_SESSION['language_display']]);
+				$translatedTitle = $newsArticle['translations'][$_SESSION['language_display']];
+				$decodedTranslatedTitle = base64_decode($translatedTitle, true);
+				if($decodedTranslatedTitle !== false && base64_encode($decodedTranslatedTitle) === $translatedTitle) {
+					$translatedTitle = $decodedTranslatedTitle;
+				}
+				$news_title = $translatedTitle;
 			}
 		}
+
+		$news_title = htmlspecialchars((string)$news_title, ENT_QUOTES, 'UTF-8');
 		
 		if(mconfig('news_short')) {
 			if($showSingleNews) {

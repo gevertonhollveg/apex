@@ -241,6 +241,11 @@ class Rankings {
 	}
 	
 	public function rankingsMenu() {
+		$currentSubpage = isset($_REQUEST['subpage']) ? $_REQUEST['subpage'] : '';
+		$currentLabel = '';
+
+		echo '<div class="rankings-header-bar">';
+		echo '<div class="rankings-header-title">'.lang('module_titles_txt_10',true).'</div>';
 		echo '<div class="rankings_menu">';
 		foreach($this->_rankingsMenu as $rm_item) {
 			if(array_key_exists(3, $rm_item)) {
@@ -249,7 +254,8 @@ class Rankings {
 				}
 			}
 			if($rm_item[2]) {
-				if($_REQUEST['subpage'] == $rm_item[1]) {
+				if($currentSubpage == $rm_item[1]) {
+					$currentLabel = $rm_item[0];
 					echo '<a href="'.__PATH_MODULES_RANKINGS__.$rm_item[1].'/" class="active">'.$rm_item[0].'</a>';
 				} else {
 					echo '<a href="'.__PATH_MODULES_RANKINGS__.$rm_item[1].'/">'.$rm_item[0].'</a>';
@@ -257,6 +263,19 @@ class Rankings {
 			}
 		}
 		echo '</div>';
+		if(check_value($currentLabel)) {
+			echo '<div class="rankings-current-view">'.$currentLabel.'</div>';
+		}
+		echo '</div>';
+
+		if($currentSubpage == 'level' && defined('__PATH_TEMPLATE_ROOT__')) {
+			$podiumFile = __PATH_TEMPLATE_ROOT__ . 'inc/modules/rankings-display.php';
+			if(file_exists($podiumFile)) {
+				echo '<div class="rankings-podium-shell">';
+				include $podiumFile;
+				echo '</div>';
+			}
+		}
 	}
 	
 	private function _rankingsExcludeChars() {

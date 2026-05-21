@@ -916,10 +916,30 @@ img { border: 0; max-width: 100%; }
 }
 
 /* ═══════════ RANKINGS ═══════════ */
+.rankings-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0 16px;
+}
+.rankings-header-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+.rankings_menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 .rankings-table {
     width: 100%;
     border-spacing: 0;
     border-collapse: collapse;
+    min-width: 640px;
 }
 .rankings-table tr td {
     border-bottom: 1px solid var(--border-color);
@@ -951,8 +971,11 @@ img { border: 0; max-width: 100%; }
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     color: var(--text-muted);
-    border-radius: 8px;
-    padding: 6px 16px;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
     transition: 0.2s;
 }
 .rankings_menu a.active,
@@ -965,6 +988,10 @@ img { border: 0; max-width: 100%; }
     max-width: 360px;
     margin: 0 auto 18px;
     text-align: left;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 12px;
 }
 .rankings-class-filter-label {
     display: block;
@@ -984,6 +1011,90 @@ img { border: 0; max-width: 100%; }
 .rankings-class-filter-select:focus {
     border-color: var(--gold);
     box-shadow: 0 0 0 2px rgba(212,168,83,0.1);
+}
+.rankings-current-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border: 1px solid rgba(212,168,83,0.35);
+    background: rgba(212,168,83,0.08);
+}
+.rankings-podium-shell {
+    margin-bottom: 18px;
+}
+.rankings-podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.ranking-podium-item {
+    width: 120px;
+    text-align: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 10px 8px;
+}
+.ranking-podium-item .podium-rank {
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+}
+.ranking-podium-item .podium-character img {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: 2px solid rgba(212,168,83,0.3);
+    object-fit: cover;
+}
+.ranking-podium-item .player-name {
+    margin-top: 8px;
+    color: var(--text-primary);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ranking-podium-item .player-level {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.ranking-podium-item.podium-rank-1 {
+    width: 138px;
+    transform: translateY(-6px);
+    border-color: rgba(212,168,83,0.55);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(212,168,83,0.2) inset;
+}
+.ranking-podium-item.podium-rank-1 .podium-character img {
+    width: 80px;
+    height: 80px;
+    border-color: var(--gold);
+}
+.rankings-table-frame {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    overflow-x: auto;
+}
+.rankings-table-frame .rankings-table tr:last-child td {
+    border-bottom: 0;
+}
+.rankings-update-time {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: right;
 }
 
 /* ═══════════ MY ACCOUNT ═══════════ */
@@ -1122,6 +1233,33 @@ img { border: 0; max-width: 100%; }
     }
     .home-news-block-article-title a {
         white-space: normal;
+    }
+    .rankings-header-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .rankings_menu {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+    }
+    .rankings_menu a {
+        white-space: nowrap;
+    }
+    .rankings-class-filter-select-wrapper {
+        max-width: 100%;
+    }
+    .rankings-podium {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 6px;
+    }
+    .ranking-podium-item,
+    .ranking-podium-item.podium-rank-1 {
+        width: 118px;
+        transform: none;
     }
 }
 @media (max-width: 480px) {

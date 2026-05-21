@@ -24,14 +24,23 @@ try {
 		$showSingleNews = true;
 		$newsID = $requestedNewsId;
 	}
+
+	// Pagination setup
+	$newsPerPage = max(1, (int)mconfig('news_list_limit'));
+	$totalNews = count($cachedNews);
+	$totalPages = max(1, (int)ceil($totalNews / $newsPerPage));
+	$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? max(1, min($totalPages, (int)$_GET['page'])) : 1;
+	$newsToDisplay = $cachedNews;
+	if(!$showSingleNews) {
+		$startIndex = ($currentPage - 1) * $newsPerPage;
+		$newsToDisplay = array_slice($cachedNews, $startIndex, $newsPerPage);
+	}
 	
 	// News list
 	$i = 0;
-	foreach($cachedNews as $newsArticle) {
+	foreach($newsToDisplay as $newsArticle) {
 		if($showSingleNews) if($newsArticle['news_id'] != $newsID) continue;
 		$News->setId($newsArticle['news_id']);
-		
-		if($i > mconfig('news_list_limit')) continue;
 		
 		$news_id = $newsArticle['news_id'];
 		$news_title = base64_decode($newsArticle['news_title']);
@@ -81,20 +90,12 @@ try {
 		$i++;
 	}
 
-	// Pagination logic
-	$newsPerPage = mconfig('news_list_limit');
-	$totalNews = count($cachedNews);
-	$totalPages = ceil($totalNews / $newsPerPage);
-	$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? max(1, min($totalPages, (int)$_GET['page'])) : 1;
-	$startIndex = ($currentPage - 1) * $newsPerPage;
-	$cachedNews = array_slice($cachedNews, $startIndex, $newsPerPage);
-
 	// Pagination controls
-	if($totalPages > 1) {
+	if(!$showSingleNews && $totalPages > 1) {
 		echo '<div class="news-pagination">';
 		for($i = 1; $i <= $totalPages; $i++) {
 			$activeClass = $i === $currentPage ? 'active' : '';
-			echo '<a href="'.__BASE_URL__.'news?page='.$i.'" class="pagination-link '.$activeClass.'">'.$i.'</a>';
+			echo '<a href="'.__BASE_URL__.'news/?page='.$i.'" class="pagination-link '.$activeClass.'">'.$i.'</a>';
 		}
 		echo '</div>';
 	}

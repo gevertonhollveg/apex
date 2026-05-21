@@ -713,7 +713,11 @@ img { border: 0; max-width: 100%; }
     width: 100%;
 }
 .home-news-block-header {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 .home-news-block-header h2 {
     margin: 0;
@@ -727,10 +731,18 @@ img { border: 0; max-width: 100%; }
     text-transform: uppercase;
     letter-spacing: 0.7px;
 }
+.home-news-block-body {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 4px 16px;
+}
 .home-news-block-article {
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(212,168,83,0.08);
     color: var(--text-secondary);
+    display: flex;
+    align-items: center;
 }
 .home-news-block-article:last-child {
     border-bottom: 0;
@@ -743,6 +755,11 @@ img { border: 0; max-width: 100%; }
 }
 .home-news-block-article-title a {
     color: var(--text-primary) !important;
+    display: inline-block;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .home-news-block-article-title a:hover {
     color: var(--gold) !important;
@@ -750,6 +767,14 @@ img { border: 0; max-width: 100%; }
 .home-news-block-article-date {
     color: var(--text-muted);
     font-size: 12px;
+}
+.home-news-block-article-date-col {
+    font-variant-numeric: tabular-nums;
+}
+.home-news-block-empty {
+    padding: 16px 0;
+    color: var(--text-muted);
+    text-align: center;
 }
 .home-ranking-row {
     margin-top: 20px;
@@ -1083,6 +1108,21 @@ img { border: 0; max-width: 100%; }
     .main-content { padding: 40px 16px; }
     .content-wrapper { padding: 20px; }
     .footer-inner { flex-direction: column; text-align: center; }
+    .home-news-block-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .home-news-block-article {
+        display: block;
+        padding: 14px 0;
+    }
+    .home-news-block-article-date-col {
+        text-align: left;
+        margin-top: 6px;
+    }
+    .home-news-block-article-title a {
+        white-space: normal;
+    }
 }
 @media (max-width: 480px) {
     .stats-container { grid-template-columns: 1fr; }

@@ -26,10 +26,12 @@
 				<?php
 					$News = new News();
 					$newsList = loadCache('news.cache');
+					$newsCount = 0;
 					if(is_array($newsList)) {
 						foreach($newsList as $key => $newsArticle) {
 							
 							if($key >= 7) break;
+							$newsCount++;
 							
 							$News->setId($newsArticle['news_id']);
 							$news_title = base64_decode($newsArticle['news_title']);
@@ -41,20 +43,25 @@
 							}
 							
 							$news_url = __BASE_URL__.'news/'.$newsArticle['news_id'].'/';
+							$news_title = htmlspecialchars($news_title, ENT_QUOTES, 'UTF-8');
 							
 							echo '<div class="row home-news-block-article">';
-								echo '<div class="col-xs-3">';
+								echo '<div class="col-xs-12 col-sm-2">';
 									echo '<span class="home-news-block-article-type">'.lang('news_txt_6').'</span>';
 								echo '</div>';
-								echo '<div class="col-xs-6 home-news-block-article-title-container">';
+								echo '<div class="col-xs-12 col-sm-7 home-news-block-article-title-container">';
 									echo '<span class="home-news-block-article-title"><a href="'.$news_url.'">'.$news_title.'</a></span>';
 								echo '</div>';
-								echo '<div class="col-xs-3 text-right">';
+								echo '<div class="col-xs-12 col-sm-3 text-right home-news-block-article-date-col">';
 									echo '<span class="home-news-block-article-date">'.date("Y/m/d", $newsArticle['news_date']).'</span>';
 								echo '</div>';
 							echo '</div>';
 							
 						}
+					}
+
+					if($newsCount === 0) {
+						echo '<div class="home-news-block-empty">'.lang('error_61').'</div>';
 					}
 				?>
 			</div>

@@ -5,13 +5,15 @@
             "title": "Season Update",
             "description": "Balancing classes and improving performance.",
             "status": "in-progress",
-            "eta": "Q3 2026"
+            "eta": "Q3 2026",
+            "donate_goal": 2000
         },
         {
             "title": "New Event Cycle",
             "description": "Introduce a new rotation with weekly rewards.",
             "status": "planned",
-            "eta": "Q4 2026"
+            "eta": "Q4 2026",
+            "donate_goal": 3500
         }
     ]
 }

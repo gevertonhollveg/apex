@@ -7,6 +7,7 @@
     "cache\/blocked_ip.cache",
     "cache\/character_country.cache",
     "cache\/downloads.cache",
+    "cache\/donation_total.cache",
     "cache\/news.cache",
     "cache\/online_characters.cache",
     "cache\/plugins.cache",

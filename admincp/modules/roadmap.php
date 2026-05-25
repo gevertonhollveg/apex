@@ -17,6 +17,7 @@ if(isset($_POST['roadmap_submit'])) {
             $descriptions = isset($_POST['roadmap_description']) && is_array($_POST['roadmap_description']) ? $_POST['roadmap_description'] : array();
             $statuses = isset($_POST['roadmap_status']) && is_array($_POST['roadmap_status']) ? $_POST['roadmap_status'] : array();
             $etas = isset($_POST['roadmap_eta']) && is_array($_POST['roadmap_eta']) ? $_POST['roadmap_eta'] : array();
+            $goals = isset($_POST['roadmap_goal']) && is_array($_POST['roadmap_goal']) ? $_POST['roadmap_goal'] : array();
 
             $total = count($titles);
             for($i = 0; $i < $total; $i++) {
@@ -24,10 +25,14 @@ if(isset($_POST['roadmap_submit'])) {
                 $description = isset($descriptions[$i]) ? trim((string)$descriptions[$i]) : '';
                 $status = isset($statuses[$i]) ? strtolower(trim((string)$statuses[$i])) : 'planned';
                 $eta = isset($etas[$i]) ? trim((string)$etas[$i]) : '';
+                $goal = isset($goals[$i]) ? (float)$goals[$i] : 0;
 
                 if($title === '') continue;
                 if(!in_array($status, $allowedStatus)) {
                     $status = 'planned';
+                }
+                if($goal < 0) {
+                    $goal = 0;
                 }
 
                 $items[] = array(
@@ -35,6 +40,7 @@ if(isset($_POST['roadmap_submit'])) {
                     'description' => $description,
                     'status' => $status,
                     'eta' => $eta,
+                    'donate_goal' => round($goal, 2),
                 );
             }
         } elseif(isset($_POST['roadmap_items_json'])) {
@@ -53,10 +59,14 @@ if(isset($_POST['roadmap_submit'])) {
                     $description = isset($entry['description']) ? trim((string)$entry['description']) : '';
                     $status = isset($entry['status']) ? strtolower(trim((string)$entry['status'])) : 'planned';
                     $eta = isset($entry['eta']) ? trim((string)$entry['eta']) : '';
+                    $goal = isset($entry['donate_goal']) ? (float)$entry['donate_goal'] : 0;
 
                     if($title === '') continue;
                     if(!in_array($status, $allowedStatus)) {
                         $status = 'planned';
+                    }
+                    if($goal < 0) {
+                        $goal = 0;
                     }
 
                     $items[] = array(
@@ -64,6 +74,7 @@ if(isset($_POST['roadmap_submit'])) {
                         'description' => $description,
                         'status' => $status,
                         'eta' => $eta,
+                        'donate_goal' => round($goal, 2),
                     );
                 }
             }
@@ -120,10 +131,11 @@ echo '<form action="" method="post">';
                 echo '<table class="table table-bordered" style="margin-bottom:10px;">';
                     echo '<thead>';
                         echo '<tr>';
-                            echo '<th style="width:24%;">Title</th>';
+                            echo '<th style="width:20%;">Title</th>';
                             echo '<th>Description</th>';
-                            echo '<th style="width:16%;">Status</th>';
-                            echo '<th style="width:16%;">ETA</th>';
+                            echo '<th style="width:14%;">Status</th>';
+                            echo '<th style="width:12%;">Goal (USD)</th>';
+                            echo '<th style="width:14%;">ETA</th>';
                             echo '<th style="width:6%;">&nbsp;</th>';
                         echo '</tr>';
                     echo '</thead>';
@@ -134,8 +146,12 @@ echo '<form action="" method="post">';
                                 $description = isset($entry['description']) ? (string)$entry['description'] : '';
                                 $status = isset($entry['status']) ? strtolower((string)$entry['status']) : 'planned';
                                 $eta = isset($entry['eta']) ? (string)$entry['eta'] : '';
+                                $goal = isset($entry['donate_goal']) ? (float)$entry['donate_goal'] : 0;
                                 if(!in_array($status, array('planned', 'in-progress', 'completed'))) {
                                     $status = 'planned';
+                                }
+                                if($goal < 0) {
+                                    $goal = 0;
                                 }
 
                                 echo '<tr>';
@@ -148,6 +164,7 @@ echo '<form action="" method="post">';
                                             echo '<option value="completed" '.($status === 'completed' ? 'selected' : '').'>Completed</option>';
                                         echo '</select>';
                                     echo '</td>';
+                                    echo '<td><input type="number" class="form-control" name="roadmap_goal[]" value="'.htmlspecialchars(number_format($goal, 2, '.', '')).'" min="0" step="0.01" placeholder="0.00"></td>';
                                     echo '<td><input type="text" class="form-control" name="roadmap_eta[]" value="'.htmlspecialchars($eta).'" maxlength="60" placeholder="e.g. Q4 2026"></td>';
                                     echo '<td><button type="button" class="btn btn-danger btn-xs roadmap-remove-item">X</button></td>';
                                 echo '</tr>';
@@ -157,6 +174,7 @@ echo '<form action="" method="post">';
                 echo '</table>';
 
                 echo '<button type="button" id="roadmap-add-item" class="btn btn-default btn-sm">Add Item</button>';
+                echo '<p class="help-block" style="margin-top:8px;">Tip: add the cron file <strong>donation_total.php</strong> in Cron Manager so donation progress is refreshed automatically.</p>';
 
                 echo '<script type="text/javascript">';
                     echo '(function($){';
@@ -172,6 +190,7 @@ echo '<form action="" method="post">';
                             echo 'row += "<option value=\"in-progress\"" + (status === "in-progress" ? " selected" : "") + ">In Progress</option>";';
                             echo 'row += "<option value=\"completed\"" + (status === "completed" ? " selected" : "") + ">Completed</option>";';
                             echo 'row += "</select></td>";';
+                            echo 'row += "<td><input type=\"number\" class=\"form-control\" name=\"roadmap_goal[]\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" value=\"" + escapeHtml(data.goal) + "\"></td>";';
                             echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_eta[]\" maxlength=\"60\" placeholder=\"e.g. Q4 2026\" value=\"" + escapeHtml(data.eta) + "\"></td>";';
                             echo 'row += "<td><button type=\"button\" class=\"btn btn-danger btn-xs roadmap-remove-item\">X</button></td>";';
                             echo 'row += "</tr>";';
@@ -179,11 +198,11 @@ echo '<form action="" method="post">';
                         echo '}';
 
                         echo 'var $body = $("#roadmap-items-body");';
-                        echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); }';
-                        echo '$(document).on("click", "#roadmap-add-item", function(){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); });';
+                        echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); }';
+                        echo '$(document).on("click", "#roadmap-add-item", function(){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); });';
                         echo '$(document).on("click", ".roadmap-remove-item", function(){';
                             echo '$(this).closest("tr").remove();';
-                            echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); }';
+                            echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); }';
                         echo '});';
                     echo '})(jQuery);';
                 echo '</script>';

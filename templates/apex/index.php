@@ -189,8 +189,8 @@ if(!isset($_REQUEST['subpage'])) {
                 <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo lang('login_txt_7', true); ?>" autocomplete="username" required>
             </div>
             <div class="form-group">
-                <label><?php echo lang('register_txt_9', true); ?></label>
-                <input type="email" class="form-input" name="webengineRegister_email" placeholder="<?php echo lang('register_txt_9', true); ?>" autocomplete="email" required>
+                <label><?php echo lang('register_txt_4', true); ?></label>
+                <input type="email" class="form-input" name="webengineRegister_email" placeholder="<?php echo lang('register_txt_4', true); ?>" autocomplete="email" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('login_txt_8', true); ?></label>

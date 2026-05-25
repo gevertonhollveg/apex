@@ -13,9 +13,17 @@ $(function() {
         $('#navbarMenu').toggleClass('open');
     });
 
+    $('#navbarMenu').on('click', '.navbar-dropdown-toggle', function(e) {
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            e.preventDefault();
+            $(this).parent().toggleClass('open');
+        }
+    });
+
     // Close menu on link click (mobile)
     $('#navbarMenu a').on('click', function() {
         $('#navbarMenu').removeClass('open');
+        $('#navbarMenu .has-dropdown').removeClass('open');
     });
 
     // ═══════════ HERO PARTICLES ═══════════

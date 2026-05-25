@@ -21,6 +21,7 @@
     "cache\/server_info.cache",
     "config\/email.xml",
     "config\/navbar.json",
+    "config\/roadmap.json",
     "config\/usercp.json",
     "config\/webengine.json",
     "config\/modules\/contact.xml",

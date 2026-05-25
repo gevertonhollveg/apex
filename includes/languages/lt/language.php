@@ -32,6 +32,7 @@ $lang['menu_txt_9'] = 'Balsavimas už atlygi';
 $lang['menu_txt_10'] = 'Reitingai';
 $lang['menu_txt_11'] = 'Informacija';
 $lang['menu_txt_12'] = 'Drop List';
+$lang['menu_txt_13'] = 'Roadmap';
 
 # module titles
 $lang['module_titles_txt_1'] = 'Užregistruokite naują paskyrą';
@@ -64,6 +65,7 @@ $lang['module_titles_txt_27'] = 'Grąžinimo politika';
 $lang['module_titles_txt_28'] = 'Pirkti Zen';
 $lang['module_titles_txt_29'] = 'Castle Siege';
 $lang['module_titles_txt_30'] = 'Drop List';
+$lang['module_titles_txt_31'] = 'Roadmap';
 
 # usercp
 $lang['usercp_menu_title'] = 'Vartotojo valdymo pultas (VVP)';

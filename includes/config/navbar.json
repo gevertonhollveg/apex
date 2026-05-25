@@ -38,6 +38,15 @@
     {
         "active": true,
         "type": "internal",
+        "phrase": "menu_txt_13",
+        "link": "?page=roadmap",
+        "visibility": "always",
+        "newtab": false,
+        "order": 36
+    },
+    {
+        "active": true,
+        "type": "internal",
         "phrase": "menu_txt_8",
         "link": "donation",
         "visibility": "always",

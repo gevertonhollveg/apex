@@ -1,0 +1,17 @@
+{
+    "active": true,
+    "items": [
+        {
+            "title": "Season Update",
+            "description": "Balancing classes and improving performance.",
+            "status": "in-progress",
+            "eta": "Q3 2026"
+        },
+        {
+            "title": "New Event Cycle",
+            "description": "Introduce a new rotation with weekly rewards.",
+            "status": "planned",
+            "eta": "Q4 2026"
+        }
+    ]
+}

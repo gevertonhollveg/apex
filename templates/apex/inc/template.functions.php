@@ -10,20 +10,84 @@ function templateBuildNavbar() {
     $cfg = loadConfig('navbar');
     if(!is_array($cfg)) return;
 
+    $visibleElements = array();
+    $groupItems = array();
+
     foreach($cfg as $element) {
         if(!is_array($element)) continue;
         if(!$element['active']) continue;
 
-        $link = ($element['type'] == 'internal' ? __BASE_URL__ . $element['link'] : $element['link']);
-        $title = (check_value(lang($element['phrase'], true)) ? lang($element['phrase'], true) : 'Unk_phrase');
-
         if($element['visibility'] == 'guest') if(isLoggedIn()) continue;
         if($element['visibility'] == 'user') if(!isLoggedIn()) continue;
 
-        if($element['newtab']) {
-            echo '<li><a href="'.$link.'" target="_blank">'.$title.'</a></li>';
+        $link = ($element['type'] == 'internal' ? __BASE_URL__ . $element['link'] : $element['link']);
+        $title = (check_value(lang($element['phrase'], true)) ? lang($element['phrase'], true) : 'Unk_phrase');
+
+        $item = array(
+            'raw' => $element,
+            'link' => $link,
+            'title' => $title,
+        );
+
+        $visibleElements[] = $item;
+
+        if($element['type'] === 'internal') {
+            $normalizedLink = strtolower(trim((string)$element['link']));
+            if(
+                in_array($normalizedLink, array('info', 'droplist', 'roadmap')) ||
+                preg_match('/(^|\?|&)page=(info|droplist|roadmap)($|&)/i', $normalizedLink)
+            ) {
+                $groupItems[] = $item;
+            }
+        }
+    }
+
+    if(!count($visibleElements)) return;
+
+    usort($groupItems, function($a, $b) {
+        return ((int)$a['raw']['order']) - ((int)$b['raw']['order']);
+    });
+
+    $groupRendered = false;
+    $groupTitle = (check_value(lang('menu_txt_11', true)) ? lang('menu_txt_11', true) : 'Info');
+
+    foreach($visibleElements as $item) {
+        $element = $item['raw'];
+
+        $isGroupedItem = false;
+        if($element['type'] === 'internal') {
+            $normalizedLink = strtolower(trim((string)$element['link']));
+            if(
+                in_array($normalizedLink, array('info', 'droplist', 'roadmap')) ||
+                preg_match('/(^|\?|&)page=(info|droplist|roadmap)($|&)/i', $normalizedLink)
+            ) {
+                $isGroupedItem = true;
+            }
+        }
+
+        if($isGroupedItem) {
+            if($groupRendered) {
+                continue;
+            }
+
+            if(count($groupItems) > 0) {
+                echo '<li class="has-dropdown">';
+                    echo '<button type="button" class="navbar-dropdown-toggle">'.$groupTitle.' <i class="fa fa-angle-down"></i></button>';
+                    echo '<ul class="navbar-dropdown-menu">';
+                        foreach($groupItems as $groupItem) {
+                            $target = $groupItem['raw']['newtab'] ? ' target="_blank"' : '';
+                            echo '<li><a href="'.$groupItem['link'].'"'.$target.'>'.$groupItem['title'].'</a></li>';
+                        }
+                    echo '</ul>';
+                echo '</li>';
+                $groupRendered = true;
+            }
         } else {
-            echo '<li><a href="'.$link.'">'.$title.'</a></li>';
+            if($element['newtab']) {
+                echo '<li><a href="'.$item['link'].'" target="_blank">'.$item['title'].'</a></li>';
+            } else {
+                echo '<li><a href="'.$item['link'].'">'.$item['title'].'</a></li>';
+            }
         }
     }
 }

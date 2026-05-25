@@ -69,6 +69,7 @@ $admincpSidebar = array(
 		"admincp_access" => "AdminCP Access",
 		"connection_settings" => "Connection Settings",
 		"website_settings" => "Website Settings",
+		"roadmap" => "Roadmap",
 		"modules_manager" => "Modules Manager",
 		"navbar" => "Navigation Menu",
 		"usercp" => "UserCP Menu",

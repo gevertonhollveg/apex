@@ -29,6 +29,7 @@ $lang['menu_txt_9'] = 'Голосовать';
 $lang['menu_txt_10'] = 'Рейтинги';
 $lang['menu_txt_11'] = 'Информация';
 $lang['menu_txt_12'] = 'Drop List';
+$lang['menu_txt_13'] = 'Roadmap';
 
 # module titles
 $lang['module_titles_txt_1'] = 'Зарегистрировать новый аккаунт';
@@ -61,6 +62,7 @@ $lang['module_titles_txt_27'] = 'Политика Возврата';
 $lang['module_titles_txt_28'] = 'Купить Zen';
 $lang['module_titles_txt_29'] = 'Castle Siege';
 $lang['module_titles_txt_30'] = 'Drop List';
+$lang['module_titles_txt_31'] = 'Roadmap';
 
 # usercp
 $lang['usercp_menu_title'] = 'Панель управления пользователя';

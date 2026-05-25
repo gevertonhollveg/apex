@@ -114,7 +114,7 @@ if(!isset($_REQUEST['subpage'])) {
             </a>
             <?php if(!isLoggedIn()): ?>
             <button class="btn-hero btn-hero-ghost" onclick="openAuthModal('register')">
-                <?php echo lang('register_txt_1', true); ?>
+                <?php echo lang('menu_txt_3', true); ?>
             </button>
             <?php endif; ?>
         </div>
@@ -153,21 +153,21 @@ if(!isset($_REQUEST['subpage'])) {
 <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <button type="button" class="auth-modal-close" aria-label="Close" onclick="closeAuthModal()">&times;</button>
     <div class="auth-modal-tabs" role="tablist" aria-label="Authentication tabs">
-        <button type="button" class="auth-modal-tab active" id="tabLogin" role="tab" aria-controls="loginForm" aria-selected="true" onclick="switchAuthTab('login')"><?php echo lang('login_txt_1', true); ?></button>
-        <button type="button" class="auth-modal-tab" id="tabRegister" role="tab" aria-controls="registerForm" aria-selected="false" onclick="switchAuthTab('register')"><?php echo lang('register_txt_1', true); ?></button>
+        <button type="button" class="auth-modal-tab active" id="tabLogin" role="tab" aria-controls="loginForm" aria-selected="true" onclick="switchAuthTab('login')"><?php echo lang('menu_txt_4', true); ?></button>
+        <button type="button" class="auth-modal-tab" id="tabRegister" role="tab" aria-controls="registerForm" aria-selected="false" onclick="switchAuthTab('register')"><?php echo lang('menu_txt_3', true); ?></button>
     </div>
     <!-- Login Form -->
     <div id="loginForm" role="tabpanel" aria-labelledby="tabLogin">
         <div class="auth-modal-title" id="authModalTitle"><?php echo lang('module_titles_txt_2', true); ?></div>
-        <div class="auth-modal-subtitle"><?php echo lang('login_txt_1', true); ?></div>
+        <div class="auth-modal-subtitle"><?php echo lang('menu_txt_4', true); ?></div>
         <form action="<?php echo __BASE_URL__; ?>login" method="post">
             <div class="form-group">
-                <label><?php echo lang('login_txt_7', true); ?></label>
-                <input type="text" class="form-input" name="webengineLogin_user" placeholder="<?php echo lang('login_txt_7', true); ?>" autocomplete="username" required>
+                <label><?php echo lang('login_txt_1', true); ?></label>
+                <input type="text" class="form-input" name="webengineLogin_user" placeholder="<?php echo lang('login_txt_1', true); ?>" autocomplete="username" required>
             </div>
             <div class="form-group">
-                <label><?php echo lang('login_txt_8', true); ?></label>
-                <input type="password" class="form-input" name="webengineLogin_pwd" placeholder="<?php echo lang('login_txt_8', true); ?>" autocomplete="current-password" required>
+                <label><?php echo lang('login_txt_2', true); ?></label>
+                <input type="password" class="form-input" name="webengineLogin_pwd" placeholder="<?php echo lang('login_txt_2', true); ?>" autocomplete="current-password" required>
             </div>
             <input type="hidden" name="webengineLogin_submit" value="1">
             <?php templateRecaptchaV2(); ?>
@@ -181,29 +181,29 @@ if(!isset($_REQUEST['subpage'])) {
     </div>
     <!-- Register Form -->
     <div id="registerForm" style="display:none" role="tabpanel" aria-labelledby="tabRegister">
-        <div class="auth-modal-title" id="authModalTitleRegister"><?php echo lang('register_txt_1', true); ?></div>
-        <div class="auth-modal-subtitle"><?php echo lang('register_txt_2', true); ?></div>
+        <div class="auth-modal-title" id="authModalTitleRegister"><?php echo lang('module_titles_txt_1', true); ?></div>
+        <div class="auth-modal-subtitle"><?php echo lang('register_txt_5', true); ?></div>
         <form action="<?php echo __BASE_URL__; ?>register" method="post">
             <div class="form-group">
-                <label><?php echo lang('login_txt_7', true); ?></label>
-                <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo lang('login_txt_7', true); ?>" autocomplete="username" required>
+                <label><?php echo lang('register_txt_1', true); ?></label>
+                <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo lang('register_txt_1', true); ?>" autocomplete="username" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('register_txt_4', true); ?></label>
                 <input type="email" class="form-input" name="webengineRegister_email" placeholder="<?php echo lang('register_txt_4', true); ?>" autocomplete="email" required>
             </div>
             <div class="form-group">
-                <label><?php echo lang('login_txt_8', true); ?></label>
-                <input type="password" class="form-input" name="webengineRegister_pwd" placeholder="<?php echo lang('login_txt_8', true); ?>" autocomplete="new-password" required>
+                <label><?php echo lang('register_txt_2', true); ?></label>
+                <input type="password" class="form-input" name="webengineRegister_pwd" placeholder="<?php echo lang('register_txt_2', true); ?>" autocomplete="new-password" required>
             </div>
             <div class="form-group">
-                <label><?php echo lang('register_txt_8', true); ?></label>
-                <input type="password" class="form-input" name="webengineRegister_pwdc" placeholder="<?php echo lang('register_txt_8', true); ?>" autocomplete="new-password" required>
+                <label><?php echo lang('register_txt_3', true); ?></label>
+                <input type="password" class="form-input" name="webengineRegister_pwdc" placeholder="<?php echo lang('register_txt_3', true); ?>" autocomplete="new-password" required>
             </div>
             <input type="hidden" name="webengineRegister_submit" value="1">
             <?php templateRecaptchaV2(); ?>
             <button type="submit" class="btn-hero btn-hero-primary auth-submit-btn" style="width:100%;justify-content:center;margin-top:8px">
-                <?php echo lang('register_txt_1', true); ?>
+                <?php echo lang('register_txt_5', true); ?>
             </button>
         </form>
     </div>

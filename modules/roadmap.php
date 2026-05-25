@@ -18,6 +18,9 @@ $donationTotalAmount = 0;
 $donationTotalCache = loadCache('donation_total.cache');
 if(is_array($donationTotalCache) && isset($donationTotalCache['total_amount'])) {
     $donationTotalAmount = (float)$donationTotalCache['total_amount'];
+    $donationTotalUpdatedAt = isset($donationTotalCache['updated_at']) ? (int)$donationTotalCache['updated_at'] : 0;
+} else {
+    $donationTotalUpdatedAt = 0;
 }
 
 if(is_array($roadmap)) {
@@ -31,6 +34,21 @@ if(is_array($roadmap)) {
 }
 
 echo '<div class="roadmap-module">';
+
+// Show last update time for donation progress
+if(isset($donationTotalUpdatedAt) && $donationTotalUpdatedAt > 0) {
+    $diff = time() - $donationTotalUpdatedAt;
+    if($diff < 60) {
+        $ago = $diff.'s ago';
+    } elseif($diff < 3600) {
+        $ago = floor($diff/60).'m ago';
+    } elseif($diff < 86400) {
+        $ago = floor($diff/3600).'h ago';
+    } else {
+        $ago = floor($diff/86400).'d ago';
+    }
+    echo '<div class="roadmap-cache-info" style="margin-bottom:10px;color:var(--text-muted);font-size:12px;">Donation progress last updated: <strong>'.$ago.'</strong></div>';
+}
 
 if(!$roadmapActive) {
     echo '<div class="roadmap-empty">Roadmap is temporarily unavailable.</div>';

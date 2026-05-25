@@ -297,10 +297,9 @@ $bagOptionsJson = json_encode($bagOptions);
 
         setSummary('Carregando dados da bag...');
 
-        var url = new URL('<?php echo __BASE_URL__; ?>api/droplist.php', window.location.origin);
-        url.searchParams.set('bag', fileName);
+        var url = baseUrl + 'api/droplist.php?bag=' + encodeURIComponent(fileName);
 
-        fetch(url.toString())
+        fetch(url)
             .then(function(response) {
                 return response.json();
             })

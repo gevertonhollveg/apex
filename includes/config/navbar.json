@@ -30,7 +30,7 @@
         "active": true,
         "type": "internal",
         "phrase": "menu_txt_12",
-        "link": "droplist",
+        "link": "?page=droplist",
         "visibility": "always",
         "newtab": false,
         "order": 35

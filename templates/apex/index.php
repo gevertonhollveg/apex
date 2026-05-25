@@ -50,6 +50,55 @@ if(!isset($_REQUEST['subpage'])) {
     <link rel="icon" type="image/x-icon" href="<?php echo __PATH_TEMPLATE__; ?>favicon.ico">
 
     <script>var baseUrl = '<?php echo __BASE_URL__; ?>';</script>
+    <script>
+    // Fallback modal handlers to prevent undefined inline onclick calls.
+    (function (w, d) {
+        function get(id) {
+            return d.getElementById(id);
+        }
+
+        if (typeof w.switchAuthTab !== 'function') {
+            w.switchAuthTab = function (tab) {
+                var loginForm = get('loginForm');
+                var registerForm = get('registerForm');
+                var tabLogin = get('tabLogin');
+                var tabRegister = get('tabRegister');
+                if (!loginForm || !registerForm || !tabLogin || !tabRegister) return;
+
+                var isLogin = tab !== 'register';
+                loginForm.style.display = isLogin ? 'block' : 'none';
+                registerForm.style.display = isLogin ? 'none' : 'block';
+
+                tabLogin.classList.toggle('active', isLogin);
+                tabRegister.classList.toggle('active', !isLogin);
+                tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
+                tabRegister.setAttribute('aria-selected', isLogin ? 'false' : 'true');
+            };
+        }
+
+        if (typeof w.openAuthModal !== 'function') {
+            w.openAuthModal = function (tab) {
+                var modal = get('authModal');
+                var backdrop = get('authModalBackdrop');
+                if (!modal || !backdrop) return;
+                backdrop.classList.add('active');
+                modal.classList.add('active');
+                w.switchAuthTab(tab || 'login');
+                d.body.style.overflow = 'hidden';
+            };
+        }
+
+        if (typeof w.closeAuthModal !== 'function') {
+            w.closeAuthModal = function () {
+                var modal = get('authModal');
+                var backdrop = get('authModalBackdrop');
+                if (backdrop) backdrop.classList.remove('active');
+                if (modal) modal.classList.remove('active');
+                d.body.style.overflow = '';
+            };
+        }
+    })(window, document);
+    </script>
 </head>
 <body>
 

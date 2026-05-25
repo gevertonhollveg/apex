@@ -9,39 +9,64 @@ $roadmapPath = __PATH_CONFIGS__ . 'roadmap.json';
 
 if(isset($_POST['roadmap_submit'])) {
     try {
-        if(!isset($_POST['roadmap_items_json'])) {
-            throw new Exception('Roadmap JSON is required.');
-        }
-
-        $itemsRaw = trim((string)$_POST['roadmap_items_json']);
-        $decodedItems = json_decode($itemsRaw, true);
-
-        if($itemsRaw === '' || !is_array($decodedItems)) {
-            throw new Exception('Roadmap JSON must be a valid JSON array.');
-        }
-
         $allowedStatus = array('planned', 'in-progress', 'completed');
         $items = array();
 
-        foreach($decodedItems as $entry) {
-            if(!is_array($entry)) continue;
+        if(isset($_POST['roadmap_title']) && is_array($_POST['roadmap_title'])) {
+            $titles = $_POST['roadmap_title'];
+            $descriptions = isset($_POST['roadmap_description']) && is_array($_POST['roadmap_description']) ? $_POST['roadmap_description'] : array();
+            $statuses = isset($_POST['roadmap_status']) && is_array($_POST['roadmap_status']) ? $_POST['roadmap_status'] : array();
+            $etas = isset($_POST['roadmap_eta']) && is_array($_POST['roadmap_eta']) ? $_POST['roadmap_eta'] : array();
 
-            $title = isset($entry['title']) ? trim((string)$entry['title']) : '';
-            $description = isset($entry['description']) ? trim((string)$entry['description']) : '';
-            $status = isset($entry['status']) ? strtolower(trim((string)$entry['status'])) : 'planned';
-            $eta = isset($entry['eta']) ? trim((string)$entry['eta']) : '';
+            $total = count($titles);
+            for($i = 0; $i < $total; $i++) {
+                $title = trim((string)$titles[$i]);
+                $description = isset($descriptions[$i]) ? trim((string)$descriptions[$i]) : '';
+                $status = isset($statuses[$i]) ? strtolower(trim((string)$statuses[$i])) : 'planned';
+                $eta = isset($etas[$i]) ? trim((string)$etas[$i]) : '';
 
-            if($title === '') continue;
-            if(!in_array($status, $allowedStatus)) {
-                $status = 'planned';
+                if($title === '') continue;
+                if(!in_array($status, $allowedStatus)) {
+                    $status = 'planned';
+                }
+
+                $items[] = array(
+                    'title' => $title,
+                    'description' => $description,
+                    'status' => $status,
+                    'eta' => $eta,
+                );
             }
+        } elseif(isset($_POST['roadmap_items_json'])) {
+            // Backward compatibility for legacy JSON field submissions.
+            $itemsRaw = trim((string)$_POST['roadmap_items_json']);
+            if($itemsRaw !== '') {
+                $decodedItems = json_decode($itemsRaw, true);
+                if(!is_array($decodedItems)) {
+                    throw new Exception('Roadmap JSON must be a valid JSON array.');
+                }
 
-            $items[] = array(
-                'title' => $title,
-                'description' => $description,
-                'status' => $status,
-                'eta' => $eta,
-            );
+                foreach($decodedItems as $entry) {
+                    if(!is_array($entry)) continue;
+
+                    $title = isset($entry['title']) ? trim((string)$entry['title']) : '';
+                    $description = isset($entry['description']) ? trim((string)$entry['description']) : '';
+                    $status = isset($entry['status']) ? strtolower(trim((string)$entry['status'])) : 'planned';
+                    $eta = isset($entry['eta']) ? trim((string)$entry['eta']) : '';
+
+                    if($title === '') continue;
+                    if(!in_array($status, $allowedStatus)) {
+                        $status = 'planned';
+                    }
+
+                    $items[] = array(
+                        'title' => $title,
+                        'description' => $description,
+                        'status' => $status,
+                        'eta' => $eta,
+                    );
+                }
+            }
         }
 
         $roadmapData = array(
@@ -90,9 +115,78 @@ echo '<form action="" method="post">';
             echo '</td>';
         echo '</tr>';
         echo '<tr>';
-            echo '<td><strong>Roadmap Items JSON</strong><p class="setting-description">Use an array of objects with fields: title, description, status (planned|in-progress|completed), eta.</p></td>';
+            echo '<td><strong>Roadmap Items</strong><p class="setting-description">Manage roadmap items. Empty title rows are ignored on save.</p></td>';
             echo '<td>';
-                echo '<textarea name="roadmap_items_json" class="form-control" rows="16" style="font-family: monospace;">'.htmlspecialchars(json_encode($cfg['items'], JSON_PRETTY_PRINT)).'</textarea>';
+                echo '<table class="table table-bordered" style="margin-bottom:10px;">';
+                    echo '<thead>';
+                        echo '<tr>';
+                            echo '<th style="width:24%;">Title</th>';
+                            echo '<th>Description</th>';
+                            echo '<th style="width:16%;">Status</th>';
+                            echo '<th style="width:16%;">ETA</th>';
+                            echo '<th style="width:6%;">&nbsp;</th>';
+                        echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody id="roadmap-items-body">';
+                        if(count($cfg['items']) > 0) {
+                            foreach($cfg['items'] as $entry) {
+                                $title = isset($entry['title']) ? (string)$entry['title'] : '';
+                                $description = isset($entry['description']) ? (string)$entry['description'] : '';
+                                $status = isset($entry['status']) ? strtolower((string)$entry['status']) : 'planned';
+                                $eta = isset($entry['eta']) ? (string)$entry['eta'] : '';
+                                if(!in_array($status, array('planned', 'in-progress', 'completed'))) {
+                                    $status = 'planned';
+                                }
+
+                                echo '<tr>';
+                                    echo '<td><input type="text" class="form-control" name="roadmap_title[]" value="'.htmlspecialchars($title).'" maxlength="120"></td>';
+                                    echo '<td><input type="text" class="form-control" name="roadmap_description[]" value="'.htmlspecialchars($description).'" maxlength="255"></td>';
+                                    echo '<td>';
+                                        echo '<select class="form-control" name="roadmap_status[]">';
+                                            echo '<option value="planned" '.($status === 'planned' ? 'selected' : '').'>Planned</option>';
+                                            echo '<option value="in-progress" '.($status === 'in-progress' ? 'selected' : '').'>In Progress</option>';
+                                            echo '<option value="completed" '.($status === 'completed' ? 'selected' : '').'>Completed</option>';
+                                        echo '</select>';
+                                    echo '</td>';
+                                    echo '<td><input type="text" class="form-control" name="roadmap_eta[]" value="'.htmlspecialchars($eta).'" maxlength="60" placeholder="e.g. Q4 2026"></td>';
+                                    echo '<td><button type="button" class="btn btn-danger btn-xs roadmap-remove-item">X</button></td>';
+                                echo '</tr>';
+                            }
+                        }
+                    echo '</tbody>';
+                echo '</table>';
+
+                echo '<button type="button" id="roadmap-add-item" class="btn btn-default btn-sm">Add Item</button>';
+
+                echo '<script type="text/javascript">';
+                    echo '(function($){';
+                        echo 'function escapeHtml(value){ return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;"); }';
+                        echo 'function createRow(data){';
+                            echo 'var status = data.status || "planned";';
+                            echo 'var row = "";';
+                            echo 'row += "<tr>";';
+                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_title[]\" maxlength=\"120\" value=\"" + escapeHtml(data.title) + "\"></td>";';
+                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_description[]\" maxlength=\"255\" value=\"" + escapeHtml(data.description) + "\"></td>";';
+                            echo 'row += "<td><select class=\"form-control\" name=\"roadmap_status[]\">";';
+                            echo 'row += "<option value=\"planned\"" + (status === "planned" ? " selected" : "") + ">Planned</option>";';
+                            echo 'row += "<option value=\"in-progress\"" + (status === "in-progress" ? " selected" : "") + ">In Progress</option>";';
+                            echo 'row += "<option value=\"completed\"" + (status === "completed" ? " selected" : "") + ">Completed</option>";';
+                            echo 'row += "</select></td>";';
+                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_eta[]\" maxlength=\"60\" placeholder=\"e.g. Q4 2026\" value=\"" + escapeHtml(data.eta) + "\"></td>";';
+                            echo 'row += "<td><button type=\"button\" class=\"btn btn-danger btn-xs roadmap-remove-item\">X</button></td>";';
+                            echo 'row += "</tr>";';
+                            echo 'return row;';
+                        echo '}';
+
+                        echo 'var $body = $("#roadmap-items-body");';
+                        echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); }';
+                        echo '$(document).on("click", "#roadmap-add-item", function(){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); });';
+                        echo '$(document).on("click", ".roadmap-remove-item", function(){';
+                            echo '$(this).closest("tr").remove();';
+                            echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",eta:""})); }';
+                        echo '});';
+                    echo '})(jQuery);';
+                echo '</script>';
             echo '</td>';
         echo '</tr>';
     echo '</table>';

@@ -33,6 +33,7 @@ $lang['menu_txt_8'] = 'Donaciones';
 $lang['menu_txt_9'] = 'Vote';
 $lang['menu_txt_10'] = 'Ranking';
 $lang['menu_txt_11'] = 'Información';
+$lang['menu_txt_12'] = 'Drop List';
 
 # títulos de módulos
 $lang['module_titles_txt_1'] = 'Registrar una nueva cuenta';
@@ -64,6 +65,7 @@ $lang['module_titles_txt_26'] = 'Contáctanos';
 $lang['module_titles_txt_27'] = 'Reembolsos';
 $lang['module_titles_txt_28'] = 'Comprar Zen';
 $lang['module_titles_txt_29'] = 'Castle Siege';
+$lang['module_titles_txt_30'] = 'Drop List';
 
 # usercp
 $lang['usercp_menu_title'] = 'Panel de Usuario';

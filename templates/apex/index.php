@@ -207,16 +207,14 @@ if(!isset($_REQUEST['subpage'])) {
     </div>
     <!-- Login Form -->
     <div id="loginForm" role="tabpanel" aria-labelledby="tabLogin">
-        <div class="auth-modal-title" id="authModalTitle"><?php echo lang('module_titles_txt_2', true); ?></div>
-        <div class="auth-modal-subtitle"><?php echo lang('menu_txt_4', true); ?></div>
         <form action="<?php echo __BASE_URL__; ?>login" method="post">
             <div class="form-group">
                 <label><?php echo lang('login_txt_1', true); ?></label>
-                <input type="text" class="form-input" name="webengineLogin_user" placeholder="<?php echo lang('login_txt_1', true); ?>" autocomplete="username" required>
+                <input type="text" class="form-input" name="webengineLogin_user" placeholder="<?php echo langf('register_txt_6', array(config('username_min_len', true), config('username_max_len', true))); ?>" autocomplete="username" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('login_txt_2', true); ?></label>
-                <input type="password" class="form-input" name="webengineLogin_pwd" placeholder="<?php echo lang('login_txt_2', true); ?>" autocomplete="current-password" required>
+                <input type="password" class="form-input" name="webengineLogin_pwd" placeholder="<?php echo langf('register_txt_7', array(config('password_min_len', true), config('password_max_len', true))); ?>" autocomplete="current-password" required>
             </div>
             <input type="hidden" name="webengineLogin_submit" value="1">
             <?php templateRecaptchaV2(); ?>
@@ -230,24 +228,25 @@ if(!isset($_REQUEST['subpage'])) {
     </div>
     <!-- Register Form -->
     <div id="registerForm" style="display:none" role="tabpanel" aria-labelledby="tabRegister">
-        <div class="auth-modal-title" id="authModalTitleRegister"><?php echo lang('module_titles_txt_1', true); ?></div>
-        <div class="auth-modal-subtitle"><?php echo lang('register_txt_5', true); ?></div>
         <form action="<?php echo __BASE_URL__; ?>register" method="post">
             <div class="form-group">
                 <label><?php echo lang('register_txt_1', true); ?></label>
-                <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo lang('register_txt_1', true); ?>" autocomplete="username" required>
+                <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo langf('register_txt_6', array(config('username_min_len', true), config('username_max_len', true))); ?>" autocomplete="username" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('register_txt_4', true); ?></label>
-                <input type="email" class="form-input" name="webengineRegister_email" placeholder="<?php echo lang('register_txt_4', true); ?>" autocomplete="email" required>
+                <input type="email" class="form-input" name="webengineRegister_email" placeholder="<?php echo lang('register_txt_9', true); ?>" autocomplete="email" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('register_txt_2', true); ?></label>
-                <input type="password" class="form-input" name="webengineRegister_pwd" placeholder="<?php echo lang('register_txt_2', true); ?>" autocomplete="new-password" required>
+                <input type="password" class="form-input" name="webengineRegister_pwd" placeholder="<?php echo langf('register_txt_7', array(config('password_min_len', true), config('password_max_len', true))); ?>" autocomplete="new-password" required>
             </div>
             <div class="form-group">
                 <label><?php echo lang('register_txt_3', true); ?></label>
-                <input type="password" class="form-input" name="webengineRegister_pwdc" placeholder="<?php echo lang('register_txt_3', true); ?>" autocomplete="new-password" required>
+                <input type="password" class="form-input" name="webengineRegister_pwdc" placeholder="<?php echo lang('register_txt_8', true); ?>" autocomplete="new-password" required>
+            </div>
+            <div class="form-footer" style="text-align:left;margin-top:0;margin-bottom:8px;">
+                <?php echo langf('register_txt_10', array(__BASE_URL__.'tos')); ?>
             </div>
             <input type="hidden" name="webengineRegister_submit" value="1">
             <?php templateRecaptchaV2(); ?>

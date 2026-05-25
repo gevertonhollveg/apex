@@ -31,6 +31,7 @@ $lang['menu_txt_8'] = '捐助';
 $lang['menu_txt_9'] = '投票领赏';
 $lang['menu_txt_10'] = '排行榜';
 $lang['menu_txt_11'] = '服务器信息';
+$lang['menu_txt_12'] = 'Drop List';
 
 # module titles
 $lang['module_titles_txt_1'] = '注册一个新帐户';
@@ -62,6 +63,7 @@ $lang['module_titles_txt_26'] = '联系我们';
 $lang['module_titles_txt_27'] = '退款策略';
 $lang['module_titles_txt_28'] = '购买Zen（游戏内金）';
 $lang['module_titles_txt_29'] = '攻城信息';
+$lang['module_titles_txt_30'] = 'Drop List';
 
 # usercp
 $lang['usercp_menu_title'] = '用户控制面板';

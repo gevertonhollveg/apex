@@ -308,6 +308,220 @@ select.form-control {
     background: rgba(212,168,83,0.06) !important;
 }
 
+/* Droplist module */
+.droplist-module {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.droplist-toolbar {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding: 14px;
+}
+
+.droplist-filter-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 0.8fr;
+    gap: 12px;
+}
+
+.droplist-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+
+.droplist-control {
+    height: 42px;
+}
+
+.droplist-control:focus {
+    border-color: rgba(212,168,83,0.45);
+    box-shadow: 0 0 0 3px rgba(212,168,83,0.12);
+}
+
+.droplist-legend {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 9px 10px;
+    border: 1px dashed rgba(212,168,83,0.2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.01);
+}
+
+.droplist-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.droplist-summary {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.2px;
+}
+
+.droplist-table-frame {
+    margin-top: 0;
+    overflow: auto;
+    max-height: 65vh;
+}
+
+.droplist-table td {
+    font-size: 13px !important;
+}
+
+.droplist-table thead td {
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #12121a;
+    box-shadow: 0 1px 0 rgba(212,168,83,0.2);
+}
+
+.droplist-table tbody td:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.drop-type {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 10px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.drop-type-item {
+    background: rgba(74,158,255,0.1);
+    color: #8bc0ff;
+    border-color: rgba(74,158,255,0.35);
+}
+
+.drop-type-ruud {
+    background: rgba(74,255,145,0.1);
+    color: #79ffb6;
+    border-color: rgba(74,255,145,0.35);
+}
+
+.drop-type-coin,
+.drop-type-zen {
+    background: rgba(212,168,83,0.12);
+    color: var(--gold-light);
+    border-color: rgba(212,168,83,0.35);
+}
+
+.drop-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2);
+}
+
+.drop-state-yes {
+    color: #75e79e;
+    background: rgba(117,231,158,0.12);
+    border-color: rgba(117,231,158,0.35);
+}
+
+.drop-state-no {
+    color: #ff8a8a;
+    background: rgba(255,138,138,0.12);
+    border-color: rgba(255,138,138,0.35);
+}
+
+.drop-state-random,
+.drop-socket-random {
+    color: #ffd37a;
+    background: rgba(255,211,122,0.14);
+    border: 1px solid rgba(255,211,122,0.35);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.drop-state-na {
+    color: var(--text-muted);
+    width: auto;
+    height: auto;
+    border: 0;
+    background: transparent;
+}
+
+.drop-ref {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+}
+
+.drop-flag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+.drop-yes {
+    color: var(--accent-green);
+}
+
+.drop-no {
+    color: var(--text-muted);
+}
+
+.droplist-empty-row {
+    text-align: center;
+    color: var(--text-muted) !important;
+    padding: 22px !important;
+}
+
+@media (max-width: 900px) {
+    .droplist-filter-row {
+        grid-template-columns: 1fr;
+    }
+
+    .droplist-summary {
+        text-align: left;
+    }
+}
+
 .content-wrapper .table a {
     color: var(--gold-light);
 }

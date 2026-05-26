@@ -85,11 +85,13 @@ try {
 		echo '</div>';
 		echo '</div>';
 
+		$shortNewsEnabled = (bool)mconfig('news_short');
+
 		if($showSingleNews) {
 			echo '<div class="panel-body">';
 			echo '<div class="news-content">'.$news_full.'</div>';
 			echo '</div>';
-		} else if(mconfig('news_expanded') > $i) {
+		} else if(!$shortNewsEnabled && mconfig('news_expanded') > $i) {
 			echo '<div class="panel-body">';
 			echo '<div class="news-content">'.$news_full.'</div>';
 			echo '</div>';

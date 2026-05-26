@@ -281,6 +281,12 @@ class News {
 						return $content;
 					}
 				}
+				if(file_exists($newsTranslationFile)) {
+					$content = file_get_contents($newsTranslationFile);
+					if($content) {
+						return $this->_getShortVersion($content);
+					}
+				}
 			} else {
 				if(file_exists($newsTranslationFile)) {
 					$content = file_get_contents($newsTranslationFile);
@@ -300,6 +306,12 @@ class News {
 					return $content;
 				}
 			}
+
+			$file = __PATH_NEWS_CACHE__ . 'news_'.$this->_id.'.cache';
+			if(!file_exists($file)) return;
+			$content = file_get_contents($file);
+			if(!$content) return;
+			return $this->_getShortVersion($content);
 		}
 		
 		// Load regular news cache

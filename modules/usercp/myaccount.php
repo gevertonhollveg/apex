@@ -138,11 +138,23 @@ if(is_array($AccountCharacters)) {
 			
 			$characterClassAvatar = getPlayerClassAvatar($characterData[_CLMN_CHR_CLASS_], false);
 			$characterOnlineStatus = in_array($characterName, $onlineCharacters) ? '<img src="'.__PATH_ONLINE_STATUS__.'" class="online-status-indicator"/>' : '<img src="'.__PATH_OFFLINE_STATUS__.'" class="online-status-indicator"/>';
+			$classRing = '';
+			switch((int)$characterData[_CLMN_CHR_CLASS_]) {
+				case 0: case 1: case 2: case 3: $classRing = 'class-dw'; break; // Dark Wizard
+				case 16: case 17: case 18: case 19: $classRing = 'class-dk'; break; // Dark Knight
+				case 32: case 33: case 34: case 35: $classRing = 'class-elf'; break; // Elf
+				case 48: case 49: case 50: case 51: $classRing = 'class-mg'; break; // Magic Gladiator
+				case 64: case 65: case 66: case 67: $classRing = 'class-dl'; break; // Dark Lord
+				case 80: case 81: case 82: case 83: $classRing = 'class-sum'; break; // Summoner
+				case 96: case 97: case 98: case 99: $classRing = 'class-rf'; break; // Rage Fighter
+				case 112: case 113: case 114: case 115: $classRing = 'class-gl'; break; // Grow Lancer
+				default: $classRing = 'class-other';
+			}
 			echo '<div class="myaccount-character-card">';
 				echo '<div class="myaccount-character-name">'.playerProfile($characterName).$characterOnlineStatus.'</div>';
-				echo '<div class="myaccount-character-block">';
+				echo '<div class="myaccount-character-block '.$classRing.'">';
 					echo '<a href="'.playerProfile($characterName, true).'" target="_blank">';
-						echo '<img src="'.$characterClassAvatar.'" />';
+					echo '<img src="'.$characterClassAvatar.'" />';
 					echo '</a>';
 				echo '</div>';
 				echo '<div class="myaccount-character-block-location">'.returnMapName($characterData[_CLMN_CHR_MAP_]).'<br />'.$characterData[_CLMN_CHR_MAP_X_].', '.$characterData[_CLMN_CHR_MAP_Y_].'</div>';

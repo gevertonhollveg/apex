@@ -41,5 +41,6 @@
     "server_info_exp": "200x",
     "server_info_masterexp": "100x",
     "server_info_drop": "50%",
-    "maximum_online": "500"
+    "maximum_online": "500",
+    "combine_level_masterlevel": true
 }

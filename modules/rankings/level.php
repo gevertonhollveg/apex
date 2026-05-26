@@ -23,11 +23,11 @@ try {
 	if(!mconfig('active')) throw new Exception(lang('error_44',true));
 	
 	$ranking_data = LoadCacheData('rankings_level.cache');
-	if(!is_array($ranking_data)) {
+	if(!is_array($ranking_data) || count($ranking_data) <= 1) {
 		$Rankings->UpdateRankingCache('level');
 		$ranking_data = LoadCacheData('rankings_level.cache');
 	}
-	if(!is_array($ranking_data)) throw new Exception(lang('error_58',true));
+	if(!is_array($ranking_data) || count($ranking_data) <= 1) throw new Exception(lang('error_58',true));
 	
 	$showPlayerCountry = mconfig('show_country_flags') ? true : false;
 	$charactersCountry = loadCache('character_country.cache');

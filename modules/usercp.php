@@ -52,6 +52,26 @@ if(!function_exists('usercpCardSubtitle')) {
 	}
 }
 
+if(!function_exists('usercpCardBackground')) {
+	function usercpCardBackground($cardIndex) {
+		$backgrounds = array(
+			'character-avatars/dk.jpg',
+			'character-avatars/dw.jpg',
+			'character-avatars/elf.jpg',
+			'character-avatars/mg.jpg',
+			'character-avatars/dl.jpg',
+			'character-avatars/rf.jpg',
+			'character-avatars/gl.jpg',
+			'character-avatars/sl.jpg',
+			'character-avatars/sum.jpg',
+			'character-avatars/lem.jpg'
+		);
+
+		$index = ($cardIndex - 1) % count($backgrounds);
+		return __PATH_TEMPLATE_IMG__ . $backgrounds[$index];
+	}
+}
+
 usort($cfg, function($a, $b) {
 	$ao = isset($a['order']) ? (int)$a['order'] : 0;
 	$bo = isset($b['order']) ? (int)$b['order'] : 0;
@@ -71,10 +91,11 @@ echo '<div class="usercp-grid">';
 		$icon = check_value($element['icon']) ? __PATH_TEMPLATE_IMG__ . 'icons/' . $element['icon'] : __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
 		$iconFallback = __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
 		$themeClass = 'usercp-card-theme-' . (($cardIndex % 5) + 1);
+		$coverImage = usercpCardBackground($cardIndex);
 
 		$target = $element['newtab'] ? ' target="_blank"' : '';
 		echo '<a href="'.$link.'"'.$target.' class="usercp-card '.$themeClass.'">';
-			echo '<div class="usercp-card-cover" style="background-image:url('.__PATH_TEMPLATE_IMG__.'usercp_bg.jpg);"></div>';
+			echo '<div class="usercp-card-cover" style="background-image:url('.htmlspecialchars($coverImage).');"></div>';
 			echo '<div class="usercp-card-noise"></div>';
 			echo '<div class="usercp-card-figure">';
 				echo '<div class="usercp-card-icon"><img src="'.$icon.'" alt="'.$title.'" loading="lazy" onerror="this.onerror=null;this.src=\''.$iconFallback.'\';" /></div>';

@@ -24,13 +24,18 @@ echo '<div class="usercp-grid">';
 		if(!$element['active']) continue;
 		$link = $element['type'] == 'internal' ? __BASE_URL__ . $element['link'] : $element['link'];
 		$title = check_value(lang($element['phrase'], true)) ? lang($element['phrase']) : 'ERROR';
-		$icon = check_value($element['icon']) ? __PATH_TEMPLATE_IMG__ . 'icons/' . $element['icon'] : __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
+		$icon = check_value($element['icon']) ? __PATH_TEMPLATE_IMG__ . 'icons/' . $element['icon'] : __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.svg';
 
-		echo $element['newtab'] ? '<a href="'.$link.'" target="_blank" class="usercp-card">' : '<a href="'.$link.'" class="usercp-card">';
-			echo '<div class="usercp-card-icon"><img src="'.$icon.'" alt="'.$title.'" loading="lazy" /></div>';
-			echo '<div class="usercp-card-title">'.$title.'</div>';
-			echo '<div class="usercp-card-action">Open <i class="fa-solid fa-arrow-right"></i></div>';
-		echo '</a>';
+		$target = $element['newtab'] ? ' target="_blank"' : '';
+		echo '<a href="'.$link.'"'.$target.' class="usercp-card">';
+			echo '<div class="usercp-card-figure">';
+				echo '<div class="usercp-card-icon"><img src="'.$icon.'" alt="'.$title.'" loading="lazy" /></div>';
+			 echo '</div>';
+			echo '<div class="usercp-card-body">';
+				echo '<div class="usercp-card-title">'.$title.'</div>';
+				echo '<div class="usercp-card-action">Acessar <i class="fa-solid fa-arrow-right"></i></div>';
+			 echo '</div>';
+		 echo '</a>';
 	}
 echo '</div>';
 

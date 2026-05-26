@@ -130,7 +130,7 @@ if(!isset($_REQUEST['subpage'])) {
                     <i class="fa-solid fa-sliders"></i> UserCP
                 </a>
                 <a href="<?php echo __BASE_URL__; ?>logout" class="btn-nav btn-nav-ghost">
-                    <i class="fa-solid fa-right-from-bracket"></i> <?php echo lang('module_titles_txt_7', true); ?>
+                    <i class="fa-solid fa-right-from-bracket"></i> <?php echo lang('menu_txt_6', true); ?>
                 </a>
             <?php endif; ?>
             <?php if(isLoggedIn() && $_SESSION['admin'] == true): ?>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title>Add Stats</title>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#74d4ff"/>
+      <stop offset="100%" stop-color="#ffd76a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="42" fill="#0f1a34"/>
+  <rect x="32" y="58" width="12" height="18" rx="4" fill="url(#g1)"/>
+  <rect x="48" y="42" width="12" height="34" rx="4" fill="url(#g1)"/>
+  <rect x="64" y="30" width="12" height="46" rx="4" fill="url(#g1)"/>
+  <path d="M42 32h16M50 24v16" stroke="#f7f8ff" stroke-width="8" stroke-linecap="round"/>
+</svg>

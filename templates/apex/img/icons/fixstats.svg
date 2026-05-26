@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title>Reset Stats</title>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6cc8ff"/>
+      <stop offset="100%" stop-color="#ffcc7a"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="18" width="76" height="64" rx="20" fill="#0f1a34"/>
+  <rect x="26" y="44" width="16" height="26" rx="6" fill="url(#g1)"/>
+  <rect x="46" y="32" width="16" height="38" rx="6" fill="url(#g1)"/>
+  <rect x="66" y="54" width="16" height="16" rx="6" fill="url(#g1)"/>
+  <path d="M38 28 L58 28" stroke="#f2f7ff" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="70" cy="32" r="8" fill="#f4f8ff" opacity="0.8"/>
+</svg>

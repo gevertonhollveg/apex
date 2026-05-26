@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title>Zen</title>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6fdcff"/>
+      <stop offset="100%" stop-color="#ffd27c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="44" fill="#0f1a34"/>
+  <polygon points="50,18 80,46 64,83 36,83 20,46" fill="url(#g1)"/>
+  <polygon points="50,18 70,46 50,70 30,46" fill="#f6f7ff" opacity="0.18"/>
+</svg>

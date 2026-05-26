@@ -188,7 +188,7 @@ if(!isset($_REQUEST['subpage'])) {
     <div id="registerForm" style="display:none">
         <div class="modal-title"><?php echo lang('register_txt_1', true); ?></div>
         <div class="modal-subtitle"><?php echo lang('register_txt_2', true); ?></div>
-        <form action="<?php echo __BASE_URL__; ?>register" method="post">
+        <form id="authRegisterForm" class="auth-ajax-register" action="<?php echo __BASE_URL__; ?>register" method="post" data-auth-tab="register">
             <div class="form-group">
                 <label><?php echo lang('login_txt_7', true); ?></label>
                 <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo lang('login_txt_7', true); ?>" required>
@@ -206,6 +206,7 @@ if(!isset($_REQUEST['subpage'])) {
                 <input type="password" class="form-input" name="webengineRegister_pwdc" placeholder="<?php echo lang('register_txt_8', true); ?>" required>
             </div>
             <input type="hidden" name="webengineRegister_submit" value="1">
+            <input type="hidden" name="webengineRegister_ajax" value="1">
             <?php templateRecaptchaV2(); ?>
             <button type="submit" class="btn-hero btn-hero-primary" style="width:100%;justify-content:center;margin-top:8px">
                 <?php echo lang('register_txt_1', true); ?>

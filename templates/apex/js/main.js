@@ -144,9 +144,97 @@ function switchAuthTab(tab) {
     }
 }
 
+function showAuthToast(type, text) {
+    var toastType = (type === 'success') ? 'success' : 'error';
+    var container = document.getElementById('authToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'authToastContainer';
+        container.className = 'auth-toast-container';
+        document.body.appendChild(container);
+    }
+
+    var toast = document.createElement('div');
+    toast.className = 'auth-toast auth-toast-' + toastType;
+    toast.textContent = text || '';
+    container.appendChild(toast);
+
+    requestAnimationFrame(function() {
+        toast.classList.add('show');
+    });
+
+    setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 220);
+    }, 3600);
+}
+
+function handleAjaxRegisterSubmit(event) {
+    event.preventDefault();
+
+    var $form = $(event.currentTarget);
+    if ($form.data('submitting')) {
+        return false;
+    }
+
+    var actionUrl = $form.attr('action');
+    if (!actionUrl) {
+        return false;
+    }
+
+    $form.data('submitting', true);
+    var $submitBtn = $form.find('button[type="submit"]');
+    $submitBtn.addClass('is-loading').prop('disabled', true);
+
+    var formData = new FormData($form.get(0));
+
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).then(function(response) {
+        return response.json();
+    }).then(function(payload) {
+        var isSuccess = !!(payload && payload.success);
+        var message = (payload && payload.message) ? payload.message : 'Unexpected response.';
+        var tab = (payload && payload.tab) ? payload.tab : 'register';
+
+        if (tab === 'register') {
+            switchAuthTab('register');
+            openAuthModal('register');
+        }
+
+        showAuthToast(isSuccess ? 'success' : 'error', message);
+
+        if (isSuccess && payload.reset) {
+            $form.trigger('reset');
+        }
+    }).catch(function() {
+        switchAuthTab('register');
+        openAuthModal('register');
+        showAuthToast('error', 'Could not submit registration right now. Please try again.');
+    }).finally(function() {
+        $form.data('submitting', false);
+        $submitBtn.removeClass('is-loading').prop('disabled', false);
+    });
+
+    return false;
+}
+
 $(function() {
     $('#authModal form').on('submit', function(e) {
         var $form = $(this);
+        if ($form.hasClass('auth-ajax-register')) {
+            return handleAjaxRegisterSubmit(e);
+        }
+
         if ($form.data('submitting')) {
             e.preventDefault();
             return false;

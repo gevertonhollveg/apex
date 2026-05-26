@@ -27,7 +27,7 @@ class Account extends common {
 		$this->_country = $country;
 	}
 	
-	public function registerAccount($username, $password, $cpassword, $email) {
+	public function registerAccount($username, $password, $cpassword, $email, $disableRedirect = false) {
 		
 		if(!check_value($username)) throw new Exception(lang('error_4',true));
 		if(!check_value($password)) throw new Exception(lang('error_4',true));
@@ -46,13 +46,11 @@ class Account extends common {
 		
 		# check if username / email exists
 		if($this->userExists($username)) throw new Exception(lang('error_10',true));
-		if($this->emailExists($email)) throw new Exception(lang('error_11',true));
 		
 		# WebEngine Email Verification System (EVS)
 		if($regCfg['verify_email']) {
 			# check if username / email exists
 			if($this->checkUsernameEVS($username)) throw new Exception(lang('error_10',true));
-			if($this->checkEmailEVS($email)) throw new Exception(lang('error_11',true));
 			
 			# generate verification key
 			$verificationKey = $this->createRegistrationVerification($username,$password,$email);
@@ -61,6 +59,9 @@ class Account extends common {
 			# send verification email
 			$this->sendRegistrationVerificationEmail($username,$email,$verificationKey);
 			message('success', lang('success_18',true));
+			if($disableRedirect) {
+				return array('success' => true, 'message' => lang('success_18',true));
+			}
 			return;
 		}
 		
@@ -86,6 +87,10 @@ class Account extends common {
 		
 		# success message
 		message('success', lang('success_1',true));
+
+		if($disableRedirect) {
+			return array('success' => true, 'message' => lang('success_1',true));
+		}
 		
 		
 		if($regCfg['automatic_login']) {
@@ -247,15 +252,16 @@ class Account extends common {
 		
 	}
 	
-	public function passwordRecoveryProcess($user_email, $ip_address) {
-		if(!check_value($user_email)) throw new Exception(lang('error_30',true));
+	public function passwordRecoveryProcess($username, $ip_address) {
+		if(!check_value($username)) throw new Exception(lang('error_30',true));
 		if(!check_value($ip_address)) throw new Exception(lang('error_30',true));
-		if(!Validator::Email($user_email)) throw new Exception(lang('error_30',true));
+		if(!Validator::UsernameLength($username)) throw new Exception(lang('error_30',true));
+		if(!Validator::AlphaNumeric($username)) throw new Exception(lang('error_30',true));
 		if(!Validator::Ip($ip_address)) throw new Exception(lang('error_30',true));
 		
-		if(!$this->emailExists($user_email)) throw new Exception(lang('error_30',true));
+		if(!$this->userExists($username)) throw new Exception(lang('error_30',true));
 		
-		$user_id = $this->retrieveUserIDbyEmail($user_email);
+		$user_id = $this->retrieveUserID($username);
 		if(!check_value($user_id)) throw new Exception(lang('error_23',true));
 		
 		$accountData = $this->accountInformation($user_id);
@@ -265,7 +271,7 @@ class Account extends common {
 		$arc = $this->generateAccountRecoveryCode($accountData[_CLMN_MEMBID_], $accountData[_CLMN_USERNM_]);
 
 		# Account Recovery URL
-		$aru = $this->generateAccountRecoveryLink($accountData[_CLMN_MEMBID_], $accountData[_CLMN_EMAIL_], $arc);
+		$aru = $this->generateAccountRecoveryLink($accountData[_CLMN_MEMBID_], $accountData[_CLMN_USERNM_], $arc);
 		
 		# send email
 		try {
@@ -296,13 +302,15 @@ class Account extends common {
 		$user_id = $ui; // user id
 		if(!Validator::UnsignedNumber($user_id)) throw new Exception(lang('error_31',true));
 		
-		$user_email = $ue; // email address
-		if(!$this->emailExists($user_email)) throw new Exception(lang('error_31',true));
+		$user_name = $ue; // username
+		if(!Validator::UsernameLength($user_name)) throw new Exception(lang('error_31',true));
+		if(!Validator::AlphaNumeric($user_name)) throw new Exception(lang('error_31',true));
 		
 		$accountData = $this->accountInformation($user_id);
 		if(!is_array($accountData)) throw new Exception(lang('error_31',true));
 		
 		$username = $accountData[_CLMN_USERNM_];
+		if(strtolower($user_name) != strtolower($username)) throw new Exception(lang('error_31',true));
 		$gen_key = $this->generateAccountRecoveryCode($user_id, $username);
 		
 		# compare keys
@@ -594,8 +602,9 @@ class Account extends common {
 		}
 	}
 	
-	private function generateAccountRecoveryLink($userid,$email,$recovery_code) {
+	private function generateAccountRecoveryLink($userid,$username,$recovery_code) {
 		if(!check_value($userid)) return;
+		if(!check_value($username)) return;
 		if(!check_value($recovery_code)) return;
 		
 		$build_url = __BASE_URL__;
@@ -603,7 +612,7 @@ class Account extends common {
 		$build_url .= '?ui=';
 		$build_url .= $userid;
 		$build_url .= '&ue=';
-		$build_url .= $email;
+		$build_url .= urlencode($username);
 		$build_url .= '&key=';
 		$build_url .= $recovery_code;
 		return $build_url;

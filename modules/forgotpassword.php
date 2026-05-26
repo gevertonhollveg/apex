@@ -35,7 +35,13 @@ try {
 		if(isset($_POST['webengineEmail_submit'])) {
 			try {
 				$Account = new Account();
-				$Account->passwordRecoveryProcess($_POST['webengineEmail_current'], $_SERVER['REMOTE_ADDR']);
+				$recoveryUser = '';
+				if(isset($_POST['webengineUsername_current'])) {
+					$recoveryUser = $_POST['webengineUsername_current'];
+				} elseif(isset($_POST['webengineEmail_current'])) {
+					$recoveryUser = $_POST['webengineEmail_current'];
+				}
+				$Account->passwordRecoveryProcess($recoveryUser, $_SERVER['REMOTE_ADDR']);
 			} catch (Exception $ex) {
 				message('error', $ex->getMessage());
 			}
@@ -44,9 +50,9 @@ try {
 		echo '<div class="col-xs-8 col-xs-offset-2" style="margin-top:30px;">';
 			echo '<form class="form-horizontal" action="" method="post">';
 				echo '<div class="form-group">';
-					echo '<label for="webengineEmail" class="col-sm-4 control-label">'.lang('forgotpass_txt_1',true).'</label>';
+					echo '<label for="webengineEmail" class="col-sm-4 control-label">'.lang('login_txt_7',true).'</label>';
 					echo '<div class="col-sm-8">';
-						echo '<input type="text" class="form-control" id="webengineEmail" name="webengineEmail_current" required>';
+						echo '<input type="text" class="form-control" id="webengineEmail" name="webengineUsername_current" required>';
 					echo '</div>';
 				echo '</div>';
 				echo '<div class="form-group">';

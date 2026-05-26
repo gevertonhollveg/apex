@@ -11,9 +11,35 @@
  * http://opensource.org/licenses/MIT
  */
 
-if(isLoggedIn()) redirect();
+if(isLoggedIn()) {
+	if(isset($_POST['webengineRegister_ajax']) && $_POST['webengineRegister_ajax'] == '1') {
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode(array('success' => false, 'message' => lang('error_4',true), 'tab' => 'register'));
+		die();
+	}
+	redirect();
+}
 
-echo '<div class="page-title"><span>'.lang('module_titles_txt_1',true).'</span></div>';
+$isAjaxRegister = (
+	(isset($_POST['webengineRegister_ajax']) && $_POST['webengineRegister_ajax'] == '1') ||
+	(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+);
+
+if(!function_exists('registerJsonResponse')) {
+	function registerJsonResponse($success, $message, $extra = array()) {
+		$response = array_merge(array(
+			'success' => (bool)$success,
+			'message' => (string)$message,
+		), $extra);
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($response);
+		die();
+	}
+}
+
+	if(!$isAjaxRegister) {
+		echo '<div class="page-title"><span>'.lang('module_titles_txt_1',true).'</span></div>';
+	}
 
 try {
 	
@@ -36,11 +62,32 @@ try {
 				}
 			}
 			
-			$Account->registerAccount($_POST['webengineRegister_user'], $_POST['webengineRegister_pwd'], $_POST['webengineRegister_pwdc'], $_POST['webengineRegister_email']);
+			$result = $Account->registerAccount(
+				$_POST['webengineRegister_user'],
+				$_POST['webengineRegister_pwd'],
+				$_POST['webengineRegister_pwdc'],
+				$_POST['webengineRegister_email'],
+				$isAjaxRegister
+			);
+
+			if($isAjaxRegister) {
+				$successMessage = lang('success_1',true);
+				if(is_array($result) && isset($result['message'])) {
+					$successMessage = $result['message'];
+				}
+				registerJsonResponse(true, $successMessage, array('tab' => 'register', 'reset' => true));
+			}
 			
 		} catch (Exception $ex) {
+			if($isAjaxRegister) {
+				registerJsonResponse(false, $ex->getMessage(), array('tab' => 'register'));
+			}
 			message('error', $ex->getMessage());
 		}
+	}
+
+	if($isAjaxRegister) {
+		registerJsonResponse(false, lang('error_4',true), array('tab' => 'register'));
 	}
 	
 	echo '<div class="col-xs-8 col-xs-offset-2" style="margin-top:30px;">';
@@ -98,5 +145,8 @@ try {
 	echo '</div>';
 
 } catch(Exception $ex) {
+	if($isAjaxRegister) {
+		registerJsonResponse(false, $ex->getMessage(), array('tab' => 'register'));
+	}
 	message('error', $ex->getMessage());
 }

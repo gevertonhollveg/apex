@@ -32,7 +32,91 @@ $(function() {
 			}
 		}
 	}
+
+	$('.auth-ajax-register').on('submit', function(e) {
+		e.preventDefault();
+
+		var $form = $(this);
+		if($form.data('submitting')) {
+			return false;
+		}
+
+		$form.data('submitting', true);
+		var $submitBtn = $form.find('button[type="submit"]');
+		$submitBtn.addClass('is-loading').prop('disabled', true);
+
+		var formData = new FormData($form.get(0));
+
+		fetch($form.attr('action'), {
+			method: 'POST',
+			body: formData,
+			credentials: 'same-origin',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest'
+			}
+		}).then(function(response) {
+			return response.json();
+		}).then(function(payload) {
+			var isSuccess = !!(payload && payload.success);
+			var message = (payload && payload.message) ? payload.message : 'Unexpected response.';
+
+			if(typeof switchAuthTab === 'function') {
+				switchAuthTab('register');
+			}
+			if(typeof openAuthModal === 'function') {
+				openAuthModal('register');
+			}
+
+			showAuthToast(isSuccess ? 'success' : 'error', message);
+
+			if(isSuccess && payload.reset) {
+				$form.trigger('reset');
+			}
+		}).catch(function() {
+			if(typeof switchAuthTab === 'function') {
+				switchAuthTab('register');
+			}
+			if(typeof openAuthModal === 'function') {
+				openAuthModal('register');
+			}
+			showAuthToast('error', 'Could not submit registration right now. Please try again.');
+		}).finally(function() {
+			$form.data('submitting', false);
+			$submitBtn.removeClass('is-loading').prop('disabled', false);
+		});
+
+		return false;
+	});
 });
+
+function showAuthToast(type, text) {
+	var toastType = (type === 'success') ? 'success' : 'error';
+	var container = document.getElementById('authToastContainer');
+	if(!container) {
+		container = document.createElement('div');
+		container.id = 'authToastContainer';
+		container.className = 'auth-toast-container';
+		document.body.appendChild(container);
+	}
+
+	var toast = document.createElement('div');
+	toast.className = 'auth-toast auth-toast-' + toastType;
+	toast.textContent = text || '';
+	container.appendChild(toast);
+
+	requestAnimationFrame(function() {
+		toast.classList.add('show');
+	});
+
+	setTimeout(function() {
+		toast.classList.remove('show');
+		setTimeout(function() {
+			if(toast.parentNode) {
+				toast.parentNode.removeChild(toast);
+			}
+		}, 220);
+	}, 3600);
+}
 
 var serverTime = {
 	weekDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],

@@ -228,7 +228,7 @@ if(!isset($_REQUEST['subpage'])) {
     </div>
     <!-- Register Form -->
     <div id="registerForm" style="display:none" role="tabpanel" aria-labelledby="tabRegister">
-        <form action="<?php echo __BASE_URL__; ?>register" method="post">
+        <form id="authRegisterForm" class="auth-ajax-register" action="<?php echo __BASE_URL__; ?>register" method="post" data-auth-tab="register">
             <div class="form-group">
                 <label><?php echo lang('register_txt_1', true); ?></label>
                 <input type="text" class="form-input" name="webengineRegister_user" placeholder="<?php echo langf('register_txt_6', array(config('username_min_len', true), config('username_max_len', true))); ?>" autocomplete="username" required>
@@ -249,6 +249,7 @@ if(!isset($_REQUEST['subpage'])) {
                 <?php echo langf('register_txt_10', array(__BASE_URL__.'tos')); ?>
             </div>
             <input type="hidden" name="webengineRegister_submit" value="1">
+            <input type="hidden" name="webengineRegister_ajax" value="1">
             <?php templateRecaptchaV2(); ?>
             <button type="submit" class="btn-hero btn-hero-primary auth-submit-btn" style="width:100%;justify-content:center;margin-top:8px">
                 <?php echo lang('register_txt_5', true); ?>

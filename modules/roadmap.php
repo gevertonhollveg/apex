@@ -13,6 +13,7 @@ echo '<div class="page-title"><span>'.$title.'</span></div>';
 $roadmap = loadConfig('roadmap');
 $roadmapActive = true;
 $roadmapItems = array();
+$roadmapPercentOnly = false;
 
 $donationTotalAmount = 0;
 $donationTotalCache = loadCache('donation_total.cache');
@@ -26,6 +27,10 @@ if(is_array($donationTotalCache) && isset($donationTotalCache['total_amount'])) 
 if(is_array($roadmap)) {
     if(array_key_exists('active', $roadmap)) {
         $roadmapActive = (bool)$roadmap['active'];
+    }
+
+    if(array_key_exists('progress_percent_only', $roadmap)) {
+        $roadmapPercentOnly = (bool)$roadmap['progress_percent_only'];
     }
 
     if(isset($roadmap['items']) && is_array($roadmap['items'])) {
@@ -55,7 +60,9 @@ if(!$roadmapActive) {
 } elseif(!count($roadmapItems)) {
     echo '<div class="roadmap-empty">No roadmap entries available yet.</div>';
 } else {
-    echo '<div class="roadmap-list">';
+    echo '<div class="roadmap-list roadmap-timeline">';
+
+    $timelineIndex = 0;
 
     foreach($roadmapItems as $item) {
         if(!is_array($item)) continue;
@@ -92,24 +99,42 @@ if(!$roadmapActive) {
         if($itemStatus === 'in-progress') $statusLabel = 'In Progress';
         if($itemStatus === 'completed') $statusLabel = 'Completed';
 
-        echo '<article class="roadmap-item">';
+        $statusIcon = 'fa-lightbulb-o';
+        if($itemStatus === 'in-progress') $statusIcon = 'fa-cogs';
+        if($itemStatus === 'completed') $statusIcon = 'fa-check-circle';
+
+        $timelineIndex++;
+
+        echo '<article class="roadmap-item roadmap-item-'.$itemStatus.'">';
+            echo '<div class="roadmap-node" aria-hidden="true">';
+                echo '<i class="fa '.$statusIcon.'"></i>';
+            echo '</div>';
             echo '<div class="roadmap-item-header">';
-                echo '<h3 class="roadmap-item-title">'.htmlspecialchars($itemTitle).'</h3>';
-                echo '<span class="roadmap-status roadmap-status-'.$itemStatus.'">'.$statusLabel.'</span>';
+                echo '<div class="roadmap-item-title-wrap">';
+                    echo '<span class="roadmap-step">Step '.(int)$timelineIndex.'</span>';
+                    echo '<h3 class="roadmap-item-title">'.htmlspecialchars($itemTitle).'</h3>';
+                echo '</div>';
+                echo '<span class="roadmap-status roadmap-status-'.$itemStatus.'"><i class="fa '.$statusIcon.'"></i> '.$statusLabel.'</span>';
             echo '</div>';
 
             if($itemDescription !== '') {
                 echo '<p class="roadmap-item-description">'.nl2br(htmlspecialchars($itemDescription)).'</p>';
             }
 
-            if($itemEta !== '') {
-                echo '<div class="roadmap-item-eta">ETA: '.htmlspecialchars($itemEta).'</div>';
-            }
+            echo '<div class="roadmap-item-meta">';
+                if($itemEta !== '') {
+                    echo '<div class="roadmap-item-eta"><i class="fa fa-calendar"></i> ETA: '.htmlspecialchars($itemEta).'</div>';
+                }
+            echo '</div>';
 
             if($itemDonateGoal > 0) {
                 echo '<div class="roadmap-progress-meta">';
-                    echo '<span>Donation Goal: $'.number_format($itemDonateGoal, 2, '.', ',').'</span>';
-                    echo '<span>Raised: $'.number_format($donationTotalAmount, 2, '.', ',').' ('.number_format($progressPercent, 2).'%)</span>';
+                    if($roadmapPercentOnly) {
+                        echo '<span><i class="fa fa-pie-chart"></i> Progress: '.number_format($progressPercent, 2).'%</span>';
+                    } else {
+                        echo '<span><i class="fa fa-flag-checkered"></i> Donation Goal: $'.number_format($itemDonateGoal, 2, '.', ',').'</span>';
+                        echo '<span><i class="fa fa-line-chart"></i> Raised: $'.number_format($donationTotalAmount, 2, '.', ',').' ('.number_format($progressPercent, 2).'%)</span>';
+                    }
                 echo '</div>';
                 echo '<div class="roadmap-progress">';
                     echo '<div class="roadmap-progress-bar" style="width:'.number_format($progressPercent, 2, '.', '').'%;"></div>';

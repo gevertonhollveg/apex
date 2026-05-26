@@ -108,6 +108,14 @@ img { border: 0; max-width: 100%; }
 .navbar-menu .has-dropdown {
     position: relative;
 }
+.navbar-menu .has-dropdown::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 10px;
+}
 .navbar-dropdown-toggle {
     display: inline-flex;
     align-items: center;
@@ -555,6 +563,47 @@ img { border: 0; max-width: 100%; }
     margin-top: 16px;
     font-size: 13px;
     color: var(--text-muted);
+}
+
+.auth-toast-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.auth-toast {
+    min-width: 260px;
+    max-width: 360px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-size: 13px;
+}
+
+.auth-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.auth-toast-success {
+    border-color: rgba(117,231,158,0.45);
+    background: rgba(117,231,158,0.12);
+}
+
+.auth-toast-error {
+    border-color: rgba(255,74,106,0.45);
+    background: rgba(255,74,106,0.12);
 }
 
 /* ═══════════ MAIN CONTENT ═══════════ */
@@ -1417,6 +1466,9 @@ img { border: 0; max-width: 100%; }
     }
     .navbar-dropdown-menu li a {
         padding: 10px 12px;
+    }
+    .navbar-menu .has-dropdown::after {
+        display: none;
     }
     .navbar-menu .has-dropdown:hover .navbar-dropdown-menu {
         display: none;

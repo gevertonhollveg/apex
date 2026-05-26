@@ -1,5 +1,6 @@
 {
     "active": true,
+    "progress_percent_only": false,
     "items": [
         {
             "title": "Season Update",

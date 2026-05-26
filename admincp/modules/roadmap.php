@@ -11,40 +11,10 @@ if(isset($_POST['roadmap_submit'])) {
     try {
         $allowedStatus = array('planned', 'in-progress', 'completed');
         $items = array();
+        $percentOnly = (isset($_POST['roadmap_percent_only']) && $_POST['roadmap_percent_only'] == '1');
 
-        if(isset($_POST['roadmap_title']) && is_array($_POST['roadmap_title'])) {
-            $titles = $_POST['roadmap_title'];
-            $descriptions = isset($_POST['roadmap_description']) && is_array($_POST['roadmap_description']) ? $_POST['roadmap_description'] : array();
-            $statuses = isset($_POST['roadmap_status']) && is_array($_POST['roadmap_status']) ? $_POST['roadmap_status'] : array();
-            $etas = isset($_POST['roadmap_eta']) && is_array($_POST['roadmap_eta']) ? $_POST['roadmap_eta'] : array();
-            $goals = isset($_POST['roadmap_goal']) && is_array($_POST['roadmap_goal']) ? $_POST['roadmap_goal'] : array();
-
-            $total = count($titles);
-            for($i = 0; $i < $total; $i++) {
-                $title = trim((string)$titles[$i]);
-                $description = isset($descriptions[$i]) ? trim((string)$descriptions[$i]) : '';
-                $status = isset($statuses[$i]) ? strtolower(trim((string)$statuses[$i])) : 'planned';
-                $eta = isset($etas[$i]) ? trim((string)$etas[$i]) : '';
-                $goal = isset($goals[$i]) ? (float)$goals[$i] : 0;
-
-                if($title === '') continue;
-                if(!in_array($status, $allowedStatus)) {
-                    $status = 'planned';
-                }
-                if($goal < 0) {
-                    $goal = 0;
-                }
-
-                $items[] = array(
-                    'title' => $title,
-                    'description' => $description,
-                    'status' => $status,
-                    'eta' => $eta,
-                    'donate_goal' => round($goal, 2),
-                );
-            }
-        } elseif(isset($_POST['roadmap_items_json'])) {
-            // Backward compatibility for legacy JSON field submissions.
+        if(isset($_POST['roadmap_items_json'])) {
+            // Prefer JSON payload to avoid max_input_vars issues with large roadmaps.
             $itemsRaw = trim((string)$_POST['roadmap_items_json']);
             if($itemsRaw !== '') {
                 $decodedItems = json_decode($itemsRaw, true);
@@ -78,10 +48,42 @@ if(isset($_POST['roadmap_submit'])) {
                     );
                 }
             }
+        } elseif(isset($_POST['roadmap_title']) && is_array($_POST['roadmap_title'])) {
+            $titles = $_POST['roadmap_title'];
+            $descriptions = isset($_POST['roadmap_description']) && is_array($_POST['roadmap_description']) ? $_POST['roadmap_description'] : array();
+            $statuses = isset($_POST['roadmap_status']) && is_array($_POST['roadmap_status']) ? $_POST['roadmap_status'] : array();
+            $etas = isset($_POST['roadmap_eta']) && is_array($_POST['roadmap_eta']) ? $_POST['roadmap_eta'] : array();
+            $goals = isset($_POST['roadmap_goal']) && is_array($_POST['roadmap_goal']) ? $_POST['roadmap_goal'] : array();
+
+            $total = count($titles);
+            for($i = 0; $i < $total; $i++) {
+                $title = trim((string)$titles[$i]);
+                $description = isset($descriptions[$i]) ? trim((string)$descriptions[$i]) : '';
+                $status = isset($statuses[$i]) ? strtolower(trim((string)$statuses[$i])) : 'planned';
+                $eta = isset($etas[$i]) ? trim((string)$etas[$i]) : '';
+                $goal = isset($goals[$i]) ? (float)$goals[$i] : 0;
+
+                if($title === '') continue;
+                if(!in_array($status, $allowedStatus)) {
+                    $status = 'planned';
+                }
+                if($goal < 0) {
+                    $goal = 0;
+                }
+
+                $items[] = array(
+                    'title' => $title,
+                    'description' => $description,
+                    'status' => $status,
+                    'eta' => $eta,
+                    'donate_goal' => round($goal, 2),
+                );
+            }
         }
 
         $roadmapData = array(
             'active' => (isset($_POST['roadmap_active']) && $_POST['roadmap_active'] == '1'),
+            'progress_percent_only' => $percentOnly,
             'items' => $items,
         );
 
@@ -108,21 +110,34 @@ $cfg = loadConfig('roadmap');
 if(!is_array($cfg)) {
     $cfg = array(
         'active' => true,
+        'progress_percent_only' => false,
         'items' => array(),
     );
+}
+
+if(!isset($cfg['progress_percent_only'])) {
+    $cfg['progress_percent_only'] = false;
 }
 
 if(!isset($cfg['items']) || !is_array($cfg['items'])) {
     $cfg['items'] = array();
 }
 
-echo '<form action="" method="post">';
+echo '<form action="" method="post" id="roadmap-form">';
+    echo '<input type="hidden" name="roadmap_items_json" id="roadmap_items_json" value="">';
     echo '<table class="table table-striped table-bordered table-hover">';
         echo '<tr>';
             echo '<td style="width:30%"><strong>Roadmap Status</strong><p class="setting-description">Enable or disable roadmap display on website.</p></td>';
             echo '<td>';
                 echo '<label class="radio-inline"><input type="radio" name="roadmap_active" value="1" '.($cfg['active'] ? 'checked' : '').'> Enabled</label>';
                 echo '<label class="radio-inline"><input type="radio" name="roadmap_active" value="0" '.(!$cfg['active'] ? 'checked' : '').'> Disabled</label>';
+            echo '</td>';
+        echo '</tr>';
+        echo '<tr>';
+            echo '<td><strong>Donation Progress Display</strong><p class="setting-description">Choose if roadmap donation progress should display values or only percentage.</p></td>';
+            echo '<td>';
+                echo '<label class="radio-inline"><input type="radio" name="roadmap_percent_only" value="0" '.(!$cfg['progress_percent_only'] ? 'checked' : '').'> Show values + %</label>';
+                echo '<label class="radio-inline"><input type="radio" name="roadmap_percent_only" value="1" '.($cfg['progress_percent_only'] ? 'checked' : '').'> Show only %</label>';
             echo '</td>';
         echo '</tr>';
         echo '<tr>';
@@ -175,6 +190,7 @@ echo '<form action="" method="post">';
 
                 echo '<button type="button" id="roadmap-add-item" class="btn btn-default btn-sm">Add Item</button>';
                 echo '<p class="help-block" style="margin-top:8px;">Tip: add the cron file <strong>donation_total.php</strong> in Cron Manager so donation progress is refreshed automatically.</p>';
+                echo '<p class="help-block">This form now serializes roadmap rows as JSON on submit, improving support for large numbers of roadmap points.</p>';
 
                 echo '<script type="text/javascript">';
                     echo '(function($){';
@@ -203,6 +219,20 @@ echo '<form action="" method="post">';
                         echo '$(document).on("click", ".roadmap-remove-item", function(){';
                             echo '$(this).closest("tr").remove();';
                             echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); }';
+                        echo '});';
+                        echo '$("#roadmap-form").on("submit", function(){';
+                            echo 'var items = [];';
+                            echo '$body.children("tr").each(function(){';
+                                echo 'var $row = $(this);';
+                                echo 'var title = $.trim($row.find("input[name=\"roadmap_title[]\"]").val() || "");';
+                                echo 'var description = $.trim($row.find("input[name=\"roadmap_description[]\"]").val() || "");';
+                                echo 'var status = $.trim($row.find("select[name=\"roadmap_status[]\"]").val() || "planned");';
+                                echo 'var eta = $.trim($row.find("input[name=\"roadmap_eta[]\"]").val() || "");';
+                                echo 'var donateGoal = parseFloat($row.find("input[name=\"roadmap_goal[]\"]").val() || "0");';
+                                echo 'if(isNaN(donateGoal) || donateGoal < 0){ donateGoal = 0; }';
+                                echo 'if(title !== ""){ items.push({title:title,description:description,status:status,eta:eta,donate_goal:donateGoal}); }';
+                            echo '});';
+                            echo '$("#roadmap_items_json").val(JSON.stringify(items));';
                         echo '});';
                     echo '})(jQuery);';
                 echo '</script>';

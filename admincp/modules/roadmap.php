@@ -224,6 +224,7 @@ echo '<form action="" method="post" id="roadmap-form">';
                             echo 'var body = document.getElementById("roadmap-items-body");';
                             echo 'var addBtn = document.getElementById("roadmap-add-item");';
                             echo 'var jsonField = document.getElementById("roadmap_items_json");';
+                            echo 'var initialItemCount = '.(int)count($cfg['items']).';';
                             echo 'if(!form || !body || !addBtn || !jsonField) return;';
 
                             echo 'if(body.children.length === 0){ body.appendChild(createRow({status:"planned"})); }';
@@ -240,7 +241,7 @@ echo '<form action="" method="post" id="roadmap-form">';
                                 echo 'if(body.children.length === 0){ body.appendChild(createRow({status:"planned"})); }';
                             echo '});';
 
-                            echo 'form.addEventListener("submit", function(){';
+                            echo 'form.addEventListener("submit", function(e){';
                                 echo 'var items = [];';
                                 echo 'var rows = body.querySelectorAll("tr");';
                                 echo 'for(var i = 0; i < rows.length; i++){';
@@ -261,6 +262,14 @@ echo '<form action="" method="post" id="roadmap-form">';
                                     echo 'if(title !== ""){ items.push({title:title, description:description, status:status, eta:eta, donate_goal:donateGoal}); }';
                                 echo '}';
                                 echo 'jsonField.value = JSON.stringify(items);';
+
+                                echo 'if(items.length === 0 && initialItemCount > 0){';
+                                    echo 'var ok = window.confirm("You are about to save an empty roadmap. This will remove all existing roadmap items. Continue?");';
+                                    echo 'if(!ok){';
+                                        echo 'e.preventDefault();';
+                                        echo 'return false;';
+                                    echo '}';
+                                echo '}';
                             echo '});';
                         echo '}';
 

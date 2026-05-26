@@ -45,7 +45,6 @@ try {
 	foreach($newsToDisplay as $newsArticle) {
 		if($showSingleNews) if($newsArticle['news_id'] != $newsID) continue;
 		$News->setId($newsArticle['news_id']);
-		
 		$news_id = $newsArticle['news_id'];
 		$news_title = $newsArticle['news_title'];
 		$news_author = $newsArticle['news_author'];
@@ -58,7 +57,7 @@ try {
 		if($decodedTitle !== false && base64_encode($decodedTitle) === $news_title) {
 			$news_title = $decodedTitle;
 		}
-		
+
 		// translated news title
 		if(config('language_switch_active',true)) {
 			if(isset($_SESSION['language_display']) && isset($newsArticle['translations']) && is_array($newsArticle['translations']) && array_key_exists($_SESSION['language_display'], $newsArticle['translations'])) {
@@ -72,38 +71,38 @@ try {
 		}
 
 		$news_title = htmlspecialchars((string)$news_title, ENT_QUOTES, 'UTF-8');
-		
-		if(mconfig('news_short')) {
-			if($showSingleNews) {
-				$loadNewsCache = $News->LoadCachedNews();
-			} else {
-				$loadNewsCache = $News->LoadCachedNews(true);
-				$loadNewsCache .= '<a href="'.$news_url.'" class="news-readmore">' . lang('news_txt_3') . '</a>';
-			}
-		} else {
-			$loadNewsCache = $News->LoadCachedNews();
-		}
-		
+
+		// Sempre carrega o resumo
+		$news_summary = $News->LoadCachedNews(true);
+		$news_full = $News->LoadCachedNews();
+
 		echo '<div class="panel panel-news">';
-			echo '<div class="panel-heading">';
-				echo '<h3 class="panel-title"><a href="'.$news_url.'">'.$news_title.'</a></h3>';
-				echo '<div class="news-meta">';
-					echo '<span><i class="fa-regular fa-user"></i> '.$news_author.'</span>';
-					echo '<span><i class="fa-regular fa-calendar"></i> '.$news_date_format.'</span>';
-				echo '</div>';
-			echo '</div>';
-			if(mconfig('news_expanded') > $i) {
-				echo '<div class="panel-body">';
-					echo '<div class="news-content">';
-						echo $loadNewsCache;
-					echo '</div>';
-				echo '</div>';
-				echo '<div class="panel-footer">';
-					echo '<a href="'.$news_url.'" class="news-footer-link"><i class="fa-solid fa-book-open"></i> '.lang('news_txt_2').'</a>';
-				echo '</div>';
-			}
+		echo '<div class="panel-heading">';
+		echo '<h3 class="panel-title"><a href="'.$news_url.'">'.$news_title.'</a></h3>';
+		echo '<div class="news-meta">';
+		echo '<span><i class="fa-regular fa-user"></i> '.$news_author.'</span>';
+		echo '<span><i class="fa-regular fa-calendar"></i> '.$news_date_format.'</span>';
 		echo '</div>';
-		
+		echo '</div>';
+
+		if($showSingleNews) {
+			echo '<div class="panel-body">';
+			echo '<div class="news-content">'.$news_full.'</div>';
+			echo '</div>';
+		} else if(mconfig('news_expanded') > $i) {
+			echo '<div class="panel-body">';
+			echo '<div class="news-content">'.$news_full.'</div>';
+			echo '</div>';
+			echo '<div class="panel-footer">';
+			echo '<a href="'.$news_url.'" class="news-footer-link"><i class="fa-solid fa-book-open"></i> '.lang('news_txt_2').'</a>';
+			echo '</div>';
+		} else {
+			echo '<div class="panel-body">';
+			echo '<div class="news-content">'.$news_summary.'<a href="'.$news_url.'" class="news-readmore">' . lang('news_txt_3') . '</a></div>';
+			echo '</div>';
+		}
+
+		echo '</div>';
 		$i++;
 	}
 

@@ -75,8 +75,11 @@ try {
 		// Sempre carrega o resumo
 		$news_summary = $News->LoadCachedNews(true);
 		$news_full = $News->LoadCachedNews();
+		$shortNewsEnabled = (bool)mconfig('news_short');
+		$isExpandedCard = $showSingleNews || (!$shortNewsEnabled && mconfig('news_expanded') > $i);
+		$panelClass = $isExpandedCard ? 'panel panel-news panel-news-expanded' : 'panel panel-news panel-news-compact';
 
-		echo '<div class="panel panel-news">';
+		echo '<div class="'.$panelClass.'">';
 		echo '<div class="panel-heading">';
 		echo '<h3 class="panel-title"><a href="'.$news_url.'">'.$news_title.'</a></h3>';
 		echo '<div class="news-meta">';
@@ -85,13 +88,11 @@ try {
 		echo '</div>';
 		echo '</div>';
 
-		$shortNewsEnabled = (bool)mconfig('news_short');
-
 		if($showSingleNews) {
 			echo '<div class="panel-body">';
 			echo '<div class="news-content">'.$news_full.'</div>';
 			echo '</div>';
-		} else if(!$shortNewsEnabled && mconfig('news_expanded') > $i) {
+		} else if($isExpandedCard) {
 			echo '<div class="panel-body">';
 			echo '<div class="news-content">'.$news_full.'</div>';
 			echo '</div>';

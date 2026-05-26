@@ -538,6 +538,128 @@ select.form-control {
     padding: 2px 7px;
 }
 
+/* Downloads module */
+.downloads-module {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.downloads-section {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding: 16px;
+}
+
+.downloads-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.downloads-section-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 17px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.downloads-section-count {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.downloads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.download-card {
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    background: rgba(0,0,0,0.16);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.download-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.download-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212,168,83,0.14);
+    color: var(--gold-light);
+}
+
+.download-card-titlewrap {
+    min-width: 0;
+}
+
+.download-card-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.download-card-size {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.download-card-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.download-card-action {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.downloads-section-client .download-card-icon {
+    background: rgba(74,158,255,0.16);
+    color: #8bc0ff;
+}
+
+.downloads-section-patch .download-card-icon {
+    background: rgba(117,231,158,0.14);
+    color: #75e79e;
+}
+
+.downloads-section-tool .download-card-icon {
+    background: rgba(212,168,83,0.14);
+    color: var(--gold-light);
+}
+
 /* Roadmap module */
 .roadmap-module {
     display: flex;

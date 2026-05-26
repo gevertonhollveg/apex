@@ -11,7 +11,7 @@ $database = (config('SQL_USE_2_DB', true) ? Connection::Database('Me_MuOnline') 
 $totalAmount = 0;
 $totalTransactions = 0;
 
-$summary = $database->query_fetch_single("SELECT ISNULL(SUM(payment_amount), 0) AS total_amount, COUNT(*) AS total_transactions FROM ".WEBENGINE_PAYPAL_TRANSACTIONS." WHERE transaction_status = 1");
+$summary = $database->query_fetch_single("SELECT COALESCE(SUM(payment_amount), 0) AS total_amount, COUNT(*) AS total_transactions FROM ".WEBENGINE_PAYPAL_TRANSACTIONS." WHERE transaction_status = 1");
 if(is_array($summary)) {
     $totalAmount = isset($summary['total_amount']) ? (float)$summary['total_amount'] : 0;
     $totalTransactions = isset($summary['total_transactions']) ? (int)$summary['total_transactions'] : 0;

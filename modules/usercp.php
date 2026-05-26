@@ -33,7 +33,6 @@ echo '<div class="usercp-grid">';
 			 echo '</div>';
 			echo '<div class="usercp-card-body">';
 				echo '<div class="usercp-card-title">'.$title.'</div>';
-				echo '<div class="usercp-card-action">Acessar <i class="fa-solid fa-arrow-right"></i></div>';
 			 echo '</div>';
 		 echo '</a>';
 	}

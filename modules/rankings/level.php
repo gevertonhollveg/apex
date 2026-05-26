@@ -23,6 +23,10 @@ try {
 	if(!mconfig('active')) throw new Exception(lang('error_44',true));
 	
 	$ranking_data = LoadCacheData('rankings_level.cache');
+	if(!is_array($ranking_data)) {
+		$Rankings->UpdateRankingCache('level');
+		$ranking_data = LoadCacheData('rankings_level.cache');
+	}
 	if(!is_array($ranking_data)) throw new Exception(lang('error_58',true));
 	
 	$showPlayerCountry = mconfig('show_country_flags') ? true : false;

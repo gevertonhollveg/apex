@@ -179,7 +179,7 @@ class Rankings {
 		
 		
 		// Master Level and Character in same table
-		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.", ("._CLMN_ML_LVL_."+"._CLMN_ML_MJLVL_.") AS "._CLMN_ML_LVL_.", "._CLMN_CHR_CLASS_.", "._CLMN_CHR_LVL_.", "._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_ML_LVL_." > 0 ORDER BY "._CLMN_ML_LVL_." DESC LIMIT ".$this->_results."");
+		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.", (COALESCE("._CLMN_ML_LVL_.",0)+COALESCE("._CLMN_ML_MJLVL_.",0)) AS "._CLMN_ML_LVL_.", "._CLMN_CHR_CLASS_.", "._CLMN_CHR_LVL_.", "._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_ML_LVL_." > 0 ORDER BY "._CLMN_ML_LVL_." DESC LIMIT ".$this->_results."");
 		
 		if(!is_array($result)) return;
 
@@ -334,7 +334,7 @@ class Rankings {
 		}
 			
 		// level + master level + majestic level (in same table)
-		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.",("._CLMN_CHR_LVL_."+"._CLMN_ML_LVL_."+"._CLMN_ML_MJLVL_.") as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") ORDER BY "._CLMN_CHR_LVL_." DESC LIMIT ".$this->_results."");
+		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.",(COALESCE("._CLMN_CHR_LVL_.",0)+COALESCE("._CLMN_ML_LVL_.",0)+COALESCE("._CLMN_ML_MJLVL_.",0)) as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") ORDER BY "._CLMN_CHR_LVL_." DESC LIMIT ".$this->_results."");
 		if(!is_array($result)) return;
 		return $result;
 	}
@@ -350,8 +350,8 @@ class Rankings {
 		}
 		
 		
-		// level + master level + majectic level (in same table)
-		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.","._CLMN_CHR_RSTS_.",("._CLMN_CHR_LVL_."+"._CLMN_ML_LVL_."+"._CLMN_ML_MJLVL_.") as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_CHR_RSTS_." > 0 ORDER BY "._CLMN_CHR_RSTS_." DESC, "._CLMN_CHR_LVL_." DESC LIMIT ".$this->_results."");
+		// level + master level + majestic level (in same table)
+		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.","._CLMN_CHR_RSTS_.",(COALESCE("._CLMN_CHR_LVL_.",0)+COALESCE("._CLMN_ML_LVL_.",0)+COALESCE("._CLMN_ML_MJLVL_.",0)) as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_CHR_RSTS_." > 0 ORDER BY "._CLMN_CHR_RSTS_." DESC, "._CLMN_CHR_LVL_." DESC LIMIT ".$this->_results."");
 		if(!is_array($result)) return;
 		return $result;
 		
@@ -369,7 +369,7 @@ class Rankings {
 		
 		
 		// level + master level + majestic level (in same table)
-		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.","._CLMN_CHR_PK_KILLS_.",("._CLMN_CHR_LVL_."+"._CLMN_ML_LVL_."+"._CLMN_ML_MJLVL_.") as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_.","._CLMN_CHR_PK_LEVEL_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_CHR_PK_KILLS_." > 0 ORDER BY "._CLMN_CHR_PK_KILLS_." DESC LIMIT ".$this->_results."");
+		$result = $this->mu->query_fetch("SELECT "._CLMN_CHR_NAME_.","._CLMN_CHR_CLASS_.","._CLMN_CHR_PK_KILLS_.",(COALESCE("._CLMN_CHR_LVL_.",0)+COALESCE("._CLMN_ML_LVL_.",0)+COALESCE("._CLMN_ML_MJLVL_.",0)) as "._CLMN_CHR_LVL_.","._CLMN_CHR_MAP_.","._CLMN_CHR_PK_LEVEL_." FROM "._TBL_CHR_." WHERE "._CLMN_CHR_NAME_." NOT IN(".$this->_rankingsExcludeChars().") AND "._CLMN_CHR_PK_KILLS_." > 0 ORDER BY "._CLMN_CHR_PK_KILLS_." DESC LIMIT ".$this->_results."");
 		if(!is_array($result)) return;
 		return $result;
 	}

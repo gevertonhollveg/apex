@@ -175,6 +175,10 @@ function BuildCacheData($data_array) {
 
 function UpdateCache($file_name, $data) {
 	$file = __PATH_CACHE__.$file_name;
+	if(!file_exists($file)) {
+		$fp = @fopen($file, 'a');
+		if($fp) fclose($fp);
+	}
 	if(!file_exists($file)) return;
 	if(!is_writable($file)) return;
 	

@@ -72,6 +72,35 @@ if(!function_exists('usercpCardBackground')) {
 	}
 }
 
+if(!function_exists('usercpCardIcon')) {
+	function usercpCardIcon($link, $configuredIcon) {
+		$normalizedLink = strtolower(trim((string)$link));
+		$normalizedLink = trim($normalizedLink, '/');
+
+		$iconMap = array(
+			'usercp/myaccount' => 'account.png',
+			'usercp/reset' => 'reset.png',
+			'usercp/unstick' => 'unstick.png',
+			'usercp/clearpk' => 'clearpk.png',
+			'usercp/resetstats' => 'fixstats.png',
+			'usercp/addstats' => 'addstats.png',
+			'usercp/vote' => 'vote.png',
+			'donation' => 'donate.png',
+			'usercp/buyzen' => 'zen.png'
+		);
+
+		if(array_key_exists($normalizedLink, $iconMap)) {
+			return __PATH_TEMPLATE_IMG__ . 'icons/' . $iconMap[$normalizedLink];
+		}
+
+		if(check_value($configuredIcon)) {
+			return __PATH_TEMPLATE_IMG__ . 'icons/' . $configuredIcon;
+		}
+
+		return __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
+	}
+}
+
 usort($cfg, function($a, $b) {
 	$ao = isset($a['order']) ? (int)$a['order'] : 0;
 	$bo = isset($b['order']) ? (int)$b['order'] : 0;
@@ -88,7 +117,7 @@ echo '<div class="usercp-grid">';
 		$link = $element['type'] == 'internal' ? __BASE_URL__ . $element['link'] : $element['link'];
 		$title = check_value(lang($element['phrase'], true)) ? lang($element['phrase']) : 'ERROR';
 		$subtitle = usercpCardSubtitle($element['type'], $element['link']);
-		$icon = check_value($element['icon']) ? __PATH_TEMPLATE_IMG__ . 'icons/' . $element['icon'] : __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
+		$icon = usercpCardIcon($element['link'], $element['icon']);
 		$iconFallback = __PATH_TEMPLATE_IMG__ . 'icons/usercp_default.png';
 		$themeClass = 'usercp-card-theme-' . (($cardIndex % 5) + 1);
 		$coverImage = usercpCardBackground($cardIndex);

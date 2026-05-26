@@ -879,8 +879,8 @@ img { border: 0; max-width: 100%; }
     margin-top: 24px;
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
 }
 
 .usercp-card {
@@ -891,8 +891,8 @@ img { border: 0; max-width: 100%; }
     align-items: flex-start;
     text-align: left;
     width: 100%;
-    padding: 16px;
-    min-height: 230px;
+    padding: 12px;
+    min-height: 182px;
     border-radius: var(--radius);
     border: 1px solid rgba(255,255,255,0.18);
     background: #121722;
@@ -903,18 +903,24 @@ img { border: 0; max-width: 100%; }
 
 .usercp-card-cover {
     position: absolute;
-    inset: 0;
+    inset: -10%;
     background-position: center;
     background-size: cover;
-    opacity: 0.7;
+    opacity: 0.72;
     z-index: 0;
+    animation: usercp-cover-pan 16s ease-in-out infinite alternate;
 }
 
 .usercp-card-noise {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: linear-gradient(180deg, rgba(4,9,16,0.28) 0%, rgba(6,10,18,0.85) 65%, rgba(5,8,14,0.94) 100%);
+    background:
+        linear-gradient(180deg, rgba(4,9,16,0.16) 0%, rgba(6,10,18,0.82) 62%, rgba(5,8,14,0.95) 100%),
+        radial-gradient(circle at 12% 18%, rgba(77,213,255,0.34), transparent 44%),
+        radial-gradient(circle at 82% 15%, rgba(255,106,193,0.34), transparent 46%),
+        radial-gradient(circle at 48% 86%, rgba(140,255,180,0.24), transparent 42%);
+    animation: usercp-noise-shift 9s linear infinite;
     pointer-events: none;
 }
 
@@ -935,37 +941,38 @@ img { border: 0; max-width: 100%; }
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 9px;
 }
 
 .usercp-card-icon {
-    width: 74px;
-    height: 74px;
-    border-radius: 18px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255,255,255,0.24);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    background: rgba(8,14,24,0.42);
+    border: 1px solid rgba(255,255,255,0.34);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 8px 16px rgba(0,0,0,0.25);
 }
 
 .usercp-card-icon img {
-    width: 42px;
+    width: 32px;
     height: auto;
     filter: drop-shadow(0 0 10px rgba(0,0,0,0.35));
 }
 
 .usercp-card-title {
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1.25;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: #ffffff;
     text-shadow: 0 2px 10px rgba(0,0,0,0.6);
 }
 
 .usercp-card-subtitle {
-    font-size: 12px;
+    font-size: 11px;
     color: rgba(255,255,255,0.88);
     letter-spacing: 0.02em;
     margin-bottom: 0;
@@ -977,6 +984,170 @@ img { border: 0; max-width: 100%; }
 .usercp-card-theme-3 { border-color: rgba(99,255,196,0.42); }
 .usercp-card-theme-4 { border-color: rgba(255,186,82,0.42); }
 .usercp-card-theme-5 { border-color: rgba(166,120,255,0.45); }
+
+@keyframes usercp-cover-pan {
+    0% {
+        transform: scale(1.02) translate3d(-1.5%, -1.2%, 0);
+    }
+    100% {
+        transform: scale(1.08) translate3d(1.5%, 1.2%, 0);
+    }
+}
+
+@keyframes usercp-noise-shift {
+    0% {
+        filter: hue-rotate(0deg) saturate(1);
+    }
+    50% {
+        filter: hue-rotate(15deg) saturate(1.08);
+    }
+    100% {
+        filter: hue-rotate(0deg) saturate(1);
+    }
+}
+
+/* ═══════════ MY ACCOUNT MODERN ═══════════ */
+.myaccount-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.myaccount-modern-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.myaccount-modern-stat {
+    background: linear-gradient(145deg, rgba(18,25,40,0.92), rgba(10,16,28,0.96));
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.myaccount-modern-stat-label {
+    display: block;
+    color: rgba(255,255,255,0.65);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+}
+
+.myaccount-modern-stat-value {
+    display: block;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.myaccount-modern-panel {
+    background: linear-gradient(160deg, rgba(14,20,33,0.92), rgba(8,14,24,0.96));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.myaccount-modern-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.myaccount-modern-row:last-child {
+    border-bottom: 0;
+}
+
+.myaccount-modern-key {
+    color: rgba(255,255,255,0.62);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+.myaccount-modern-val {
+    color: #fff;
+    font-size: 13px;
+    text-align: right;
+}
+
+.myaccount-modern-action {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(84,179,255,0.5);
+    color: #9ed8ff;
+    text-decoration: none !important;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.myaccount-modern-action:hover {
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.58);
+    background: rgba(80,148,255,0.2);
+}
+
+.myaccount-character-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.myaccount-character-card {
+    position: relative;
+    background: linear-gradient(155deg, rgba(18,24,39,0.95), rgba(9,14,24,0.95));
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+}
+
+.myaccount-character-card .myaccount-character-name {
+    margin-bottom: 8px;
+}
+
+.myaccount-character-card .myaccount-character-block {
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.02);
+}
+
+.myaccount-character-card .myaccount-character-block img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+
+.myaccount-character-card .myaccount-character-block-location {
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.78);
+    min-height: 32px;
+}
+
+.myaccount-character-card .myaccount-character-block-level {
+    margin-top: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(60,137,255,0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
 
 /* ═══════════ RESPONSIVE ═══════════ */
 @media (max-width: 768px) {

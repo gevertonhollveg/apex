@@ -12,8 +12,8 @@
  * http://opensource.org/licenses/MIT
  */
 
-// Load rankings from cache
-$rankingsCache = LoadCacheData('rankings_level.cache');
+// Load rankings from cache (master level)
+$rankingsCache = LoadCacheData('rankings_master.cache');
 
 if (!is_array($rankingsCache) || empty($rankingsCache)) {
 	return;
@@ -38,13 +38,13 @@ echo '<div class="rankings-podium">';
 foreach ($podiumOrder as $entry) {
 	$player = $entry['player'];
 	$rank = (int)$entry['rank'];
-	$characterClass = templateGetCharacterClass($player[1]);
+	$characterClass = templateGetCharacterClass($player[2]);
 	$podiumClass = 'podium-rank-'.$rank;
 
 	$avatarPath = __PATH_TEMPLATE_IMG__ . 'character-avatars/' . strtolower($characterClass) . '.jpg';
 	$defaultAvatar = __PATH_TEMPLATE_IMG__ . 'character-avatars/dk.jpg';
 	$playerName = htmlspecialchars($player[0], ENT_QUOTES, 'UTF-8');
-	$playerLevel = number_format((int)$player[2]);
+	$playerLevel = number_format((int)$player[1]);
 
 	echo '<div class="ranking-podium-item '.$podiumClass.'">';
 		echo '<div class="podium-rank">#'.$rank.'</div>';
@@ -53,7 +53,7 @@ foreach ($podiumOrder as $entry) {
 			echo '</div>';
 		echo '<div class="podium-info">';
 			echo '<div class="player-name">'.($rank === 1 ? '&#x1F451; ' : '').$playerName.'</div>';
-			echo '<div class="player-level">Level '.$playerLevel.'</div>';
+			echo '<div class="player-level">Master Level '.$playerLevel.'</div>';
 		echo '</div>';
 	echo '</div>';
 }

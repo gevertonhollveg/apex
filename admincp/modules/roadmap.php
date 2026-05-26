@@ -13,40 +13,39 @@ if(isset($_POST['roadmap_submit'])) {
         $items = array();
         $percentOnly = (isset($_POST['roadmap_percent_only']) && $_POST['roadmap_percent_only'] == '1');
 
-        if(isset($_POST['roadmap_items_json'])) {
+        $itemsRaw = isset($_POST['roadmap_items_json']) ? trim((string)$_POST['roadmap_items_json']) : '';
+
+        if($itemsRaw !== '') {
             // Prefer JSON payload to avoid max_input_vars issues with large roadmaps.
-            $itemsRaw = trim((string)$_POST['roadmap_items_json']);
-            if($itemsRaw !== '') {
-                $decodedItems = json_decode($itemsRaw, true);
-                if(!is_array($decodedItems)) {
-                    throw new Exception('Roadmap JSON must be a valid JSON array.');
+            $decodedItems = json_decode($itemsRaw, true);
+            if(!is_array($decodedItems)) {
+                throw new Exception('Roadmap JSON must be a valid JSON array.');
+            }
+
+            foreach($decodedItems as $entry) {
+                if(!is_array($entry)) continue;
+
+                $title = isset($entry['title']) ? trim((string)$entry['title']) : '';
+                $description = isset($entry['description']) ? trim((string)$entry['description']) : '';
+                $status = isset($entry['status']) ? strtolower(trim((string)$entry['status'])) : 'planned';
+                $eta = isset($entry['eta']) ? trim((string)$entry['eta']) : '';
+                $goal = isset($entry['donate_goal']) ? (float)$entry['donate_goal'] : 0;
+
+                if($title === '') continue;
+                if(!in_array($status, $allowedStatus)) {
+                    $status = 'planned';
+                }
+                if($goal < 0) {
+                    $goal = 0;
                 }
 
-                foreach($decodedItems as $entry) {
-                    if(!is_array($entry)) continue;
-
-                    $title = isset($entry['title']) ? trim((string)$entry['title']) : '';
-                    $description = isset($entry['description']) ? trim((string)$entry['description']) : '';
-                    $status = isset($entry['status']) ? strtolower(trim((string)$entry['status'])) : 'planned';
-                    $eta = isset($entry['eta']) ? trim((string)$entry['eta']) : '';
-                    $goal = isset($entry['donate_goal']) ? (float)$entry['donate_goal'] : 0;
-
-                    if($title === '') continue;
-                    if(!in_array($status, $allowedStatus)) {
-                        $status = 'planned';
-                    }
-                    if($goal < 0) {
-                        $goal = 0;
-                    }
-
-                    $items[] = array(
-                        'title' => $title,
-                        'description' => $description,
-                        'status' => $status,
-                        'eta' => $eta,
-                        'donate_goal' => round($goal, 2),
-                    );
-                }
+                $items[] = array(
+                    'title' => $title,
+                    'description' => $description,
+                    'status' => $status,
+                    'eta' => $eta,
+                    'donate_goal' => round($goal, 2),
+                );
             }
         } elseif(isset($_POST['roadmap_title']) && is_array($_POST['roadmap_title'])) {
             $titles = $_POST['roadmap_title'];
@@ -193,48 +192,84 @@ echo '<form action="" method="post" id="roadmap-form">';
                 echo '<p class="help-block">This form now serializes roadmap rows as JSON on submit, improving support for large numbers of roadmap points.</p>';
 
                 echo '<script type="text/javascript">';
-                    echo '(function($){';
-                        echo 'function escapeHtml(value){ return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;"); }';
+                    echo '(function(){';
                         echo 'function createRow(data){';
-                            echo 'var status = data.status || "planned";';
-                            echo 'var row = "";';
-                            echo 'row += "<tr>";';
-                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_title[]\" maxlength=\"120\" value=\"" + escapeHtml(data.title) + "\"></td>";';
-                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_description[]\" maxlength=\"255\" value=\"" + escapeHtml(data.description) + "\"></td>";';
-                            echo 'row += "<td><select class=\"form-control\" name=\"roadmap_status[]\">";';
-                            echo 'row += "<option value=\"planned\"" + (status === "planned" ? " selected" : "") + ">Planned</option>";';
-                            echo 'row += "<option value=\"in-progress\"" + (status === "in-progress" ? " selected" : "") + ">In Progress</option>";';
-                            echo 'row += "<option value=\"completed\"" + (status === "completed" ? " selected" : "") + ">Completed</option>";';
-                            echo 'row += "</select></td>";';
-                            echo 'row += "<td><input type=\"number\" class=\"form-control\" name=\"roadmap_goal[]\" min=\"0\" step=\"0.01\" placeholder=\"0.00\" value=\"" + escapeHtml(data.goal) + "\"></td>";';
-                            echo 'row += "<td><input type=\"text\" class=\"form-control\" name=\"roadmap_eta[]\" maxlength=\"60\" placeholder=\"e.g. Q4 2026\" value=\"" + escapeHtml(data.eta) + "\"></td>";';
-                            echo 'row += "<td><button type=\"button\" class=\"btn btn-danger btn-xs roadmap-remove-item\">X</button></td>";';
-                            echo 'row += "</tr>";';
-                            echo 'return row;';
+                            echo 'var status = (data && data.status) ? data.status : "planned";';
+                            echo 'var title = (data && data.title) ? data.title : "";';
+                            echo 'var description = (data && data.description) ? data.description : "";';
+                            echo 'var goal = (data && data.goal) ? data.goal : "";';
+                            echo 'var eta = (data && data.eta) ? data.eta : "";';
+                            echo 'var tr = document.createElement("tr");';
+                            echo 'tr.innerHTML = ""'
+                                . ' + "<td><input type=\\"text\\" class=\\"form-control\\" name=\\"roadmap_title[]\\" maxlength=\\"120\\"></td>"'
+                                . ' + "<td><input type=\\"text\\" class=\\"form-control\\" name=\\"roadmap_description[]\\" maxlength=\\"255\\"></td>"'
+                                . ' + "<td><select class=\\"form-control\\" name=\\"roadmap_status[]\\">"'
+                                . ' + "<option value=\\"planned\\">Planned</option>"'
+                                . ' + "<option value=\\"in-progress\\">In Progress</option>"'
+                                . ' + "<option value=\\"completed\\">Completed</option>"'
+                                . ' + "</select></td>"'
+                                . ' + "<td><input type=\\"number\\" class=\\"form-control\\" name=\\"roadmap_goal[]\\" min=\\"0\\" step=\\"0.01\\" placeholder=\\"0.00\\"></td>"'
+                                . ' + "<td><input type=\\"text\\" class=\\"form-control\\" name=\\"roadmap_eta[]\\" maxlength=\\"60\\" placeholder=\\"e.g. Q4 2026\\"></td>"'
+                                . ' + "<td><button type=\\"button\\" class=\\"btn btn-danger btn-xs roadmap-remove-item\\">X</button></td>";';
+                            echo 'tr.querySelector("input[name=\\"roadmap_title[]\\"]").value = title;';
+                            echo 'tr.querySelector("input[name=\\"roadmap_description[]\\"]").value = description;';
+                            echo 'tr.querySelector("select[name=\\"roadmap_status[]\\"]").value = status;';
+                            echo 'tr.querySelector("input[name=\\"roadmap_goal[]\\"]").value = goal;';
+                            echo 'tr.querySelector("input[name=\\"roadmap_eta[]\\"]").value = eta;';
+                            echo 'return tr;';
                         echo '}';
 
-                        echo 'var $body = $("#roadmap-items-body");';
-                        echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); }';
-                        echo '$(document).on("click", "#roadmap-add-item", function(){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); });';
-                        echo '$(document).on("click", ".roadmap-remove-item", function(){';
-                            echo '$(this).closest("tr").remove();';
-                            echo 'if($body.children().length === 0){ $body.append(createRow({title:"",description:"",status:"planned",goal:"",eta:""})); }';
-                        echo '});';
-                        echo '$("#roadmap-form").on("submit", function(){';
-                            echo 'var items = [];';
-                            echo '$body.children("tr").each(function(){';
-                                echo 'var $row = $(this);';
-                                echo 'var title = $.trim($row.find("input[name=\"roadmap_title[]\"]").val() || "");';
-                                echo 'var description = $.trim($row.find("input[name=\"roadmap_description[]\"]").val() || "");';
-                                echo 'var status = $.trim($row.find("select[name=\"roadmap_status[]\"]").val() || "planned");';
-                                echo 'var eta = $.trim($row.find("input[name=\"roadmap_eta[]\"]").val() || "");';
-                                echo 'var donateGoal = parseFloat($row.find("input[name=\"roadmap_goal[]\"]").val() || "0");';
-                                echo 'if(isNaN(donateGoal) || donateGoal < 0){ donateGoal = 0; }';
-                                echo 'if(title !== ""){ items.push({title:title,description:description,status:status,eta:eta,donate_goal:donateGoal}); }';
+                        echo 'function initRoadmapForm(){';
+                            echo 'var form = document.getElementById("roadmap-form");';
+                            echo 'var body = document.getElementById("roadmap-items-body");';
+                            echo 'var addBtn = document.getElementById("roadmap-add-item");';
+                            echo 'var jsonField = document.getElementById("roadmap_items_json");';
+                            echo 'if(!form || !body || !addBtn || !jsonField) return;';
+
+                            echo 'if(body.children.length === 0){ body.appendChild(createRow({status:"planned"})); }';
+
+                            echo 'addBtn.addEventListener("click", function(){';
+                                echo 'body.appendChild(createRow({status:"planned"}));';
                             echo '});';
-                            echo '$("#roadmap_items_json").val(JSON.stringify(items));';
-                        echo '});';
-                    echo '})(jQuery);';
+
+                            echo 'body.addEventListener("click", function(e){';
+                                echo 'var target = e.target;';
+                                echo 'if(!target || !target.classList.contains("roadmap-remove-item")) return;';
+                                echo 'var row = target.closest("tr");';
+                                echo 'if(row) row.remove();';
+                                echo 'if(body.children.length === 0){ body.appendChild(createRow({status:"planned"})); }';
+                            echo '});';
+
+                            echo 'form.addEventListener("submit", function(){';
+                                echo 'var items = [];';
+                                echo 'var rows = body.querySelectorAll("tr");';
+                                echo 'for(var i = 0; i < rows.length; i++){';
+                                    echo 'var row = rows[i];';
+                                    echo 'var titleInput = row.querySelector("input[name=\\"roadmap_title[]\\"]");';
+                                    echo 'var descriptionInput = row.querySelector("input[name=\\"roadmap_description[]\\"]");';
+                                    echo 'var statusInput = row.querySelector("select[name=\\"roadmap_status[]\\"]");';
+                                    echo 'var etaInput = row.querySelector("input[name=\\"roadmap_eta[]\\"]");';
+                                    echo 'var goalInput = row.querySelector("input[name=\\"roadmap_goal[]\\"]");';
+                                    echo 'if(!titleInput || !descriptionInput || !statusInput || !etaInput || !goalInput) continue;';
+
+                                    echo 'var title = (titleInput.value || "").trim();';
+                                    echo 'var description = (descriptionInput.value || "").trim();';
+                                    echo 'var status = (statusInput.value || "planned").trim();';
+                                    echo 'var eta = (etaInput.value || "").trim();';
+                                    echo 'var donateGoal = parseFloat(goalInput.value || "0");';
+                                    echo 'if(isNaN(donateGoal) || donateGoal < 0) donateGoal = 0;';
+                                    echo 'if(title !== ""){ items.push({title:title, description:description, status:status, eta:eta, donate_goal:donateGoal}); }';
+                                echo '}';
+                                echo 'jsonField.value = JSON.stringify(items);';
+                            echo '});';
+                        echo '}';
+
+                        echo 'if(document.readyState === "loading"){';
+                            echo 'document.addEventListener("DOMContentLoaded", initRoadmapForm);';
+                        echo '} else {';
+                            echo 'initRoadmapForm();';
+                        echo '}';
+                    echo '})();';
                 echo '</script>';
             echo '</td>';
         echo '</tr>';

@@ -3,7 +3,7 @@
  * Character Item Inventory Manager — AdminCP Module
  */
 
-// ─── Item name loader ───
+// ─── Item name loader (reads KindA for mastery detection) ───
 function loadItemNameMapAdmin($itemListPath) {
 	$map = array();
 	if (!is_file($itemListPath)) return $map;
@@ -19,6 +19,7 @@ function loadItemNameMapAdmin($itemListPath) {
 			} elseif ($reader->name === 'Item' && $currentCategory !== null) {
 				$itemIndex = $reader->getAttribute('Index');
 				$itemName = trim((string)$reader->getAttribute('Name'));
+				$kindA = $reader->getAttribute('KindA');
 				if (is_numeric($itemIndex) && $itemName !== '') {
 					$code = (512 * $currentCategory['index']) + (int)$itemIndex;
 					$map[$code] = array(
@@ -26,6 +27,7 @@ function loadItemNameMapAdmin($itemListPath) {
 						'category' => $currentCategory['name'],
 						'catIndex' => $currentCategory['index'],
 						'itemIndex' => (int)$itemIndex,
+						'kindA' => is_numeric($kindA) ? (int)$kindA : 0,
 					);
 				}
 			}
@@ -108,12 +110,13 @@ if (isset($_GET['ajax'])) {
 						$f = explode(';', $itemStr);
 						if (count($f) < 16) continue;
 						$itemCode = (int)$f[2];
-						$itemName = 'Unknown Item'; $catName = ''; $catIdx = -1; $itmIdx = -1;
+						$itemName = 'Unknown Item'; $catName = ''; $catIdx = -1; $itmIdx = -1; $kindA = 0;
 						if (isset($itemMap[$itemCode])) {
 							$itemName = $itemMap[$itemCode]['name'];
 							$catName  = $itemMap[$itemCode]['category'];
 							$catIdx   = $itemMap[$itemCode]['catIndex'];
 							$itmIdx   = $itemMap[$itemCode]['itemIndex'];
+							$kindA    = $itemMap[$itemCode]['kindA'];
 						}
 						$sockets = array();
 						for ($s = 16; $s <= 20; $s++) $sockets[] = isset($f[$s]) ? (int)$f[$s] : 65535;
@@ -121,6 +124,7 @@ if (isset($_GET['ajax'])) {
 							'invType' => (int)$f[0], 'invTypeName' => getInventoryTypeName((int)$f[0]),
 							'slot' => (int)$f[1], 'itemCode' => $itemCode, 'itemName' => $itemName,
 							'category' => $catName, 'catIndex' => $catIdx, 'itemIndex' => $itmIdx,
+							'kindA' => $kindA,
 							'serial' => $f[4], 'level' => (int)$f[6], 'durability' => (int)$f[7],
 							'skill' => (int)$f[9], 'luck' => (int)$f[10], 'option' => (int)$f[11],
 							'exc' => (int)$f[12], 'ancient' => (int)$f[13],
@@ -134,7 +138,7 @@ if (isset($_GET['ajax'])) {
 			case 'itemlist':
 				$list = array();
 				foreach ($itemMap as $code => $info) {
-					$list[] = array('code' => $code, 'name' => $info['name'], 'category' => $info['category'], 'catIndex' => $info['catIndex'], 'itemIndex' => $info['itemIndex']);
+					$list[] = array('code' => $code, 'name' => $info['name'], 'category' => $info['category'], 'catIndex' => $info['catIndex'], 'itemIndex' => $info['itemIndex'], 'kindA' => $info['kindA']);
 				}
 				$response = array('success' => true, 'items' => $list);
 				break;
@@ -301,6 +305,7 @@ if (isset($_POST['item_action'])) {
 .ci-badge-ancient { background:#5bc0de; color:#1a5632; font-weight:bold; }
 .ci-badge-socket { background:#9b59b6; color:#fff; }
 .ci-badge-wing { background:#f0ad4e; color:#fff; }
+.ci-badge-mastery { background:#c0392b; color:#fff; font-weight:bold; }
 .ci-item-row td { vertical-align:middle!important; }
 .ci-item-name { cursor:default; }
 .ci-type-badge { cursor:default; font-size:11px; padding:3px 8px; display:inline-block; border-radius:3px; }
@@ -531,7 +536,7 @@ var itemCategories = [];
 var ancientMapData = <?php echo json_encode((object)$ancientMap); ?>;
 var dataLoaded = false;
 
-// ── Exc option labels ──
+// ── Normal Exc option labels ──
 var EXC_ATK = [
 	'Increase Mana after monster kill +Mana/8',
 	'Increase Life after monster kill +Life/8',
@@ -548,6 +553,7 @@ var EXC_DEF = [
 	'Increase Max Mana +4%',
 	'Increase Max HP +4%'
 ];
+// ── Wing Exc labels ──
 var EXC_WING_L2 = [
 	'+50 HP Max + (Wing Lv x 5)',
 	'+50 Mana Max + (Wing Lv x 5)',
@@ -566,12 +572,44 @@ var EXC_WING_MONSTER = [
 	'Recovers HP total',
 	'-', '-', '-', '-'
 ];
+// ── Mastery Exc labels ──
+var EXC_MASTERY_WEAPON = [
+	'Recovery +Mana/8 after monster kill',
+	'Recovery +Life/8 after monster kill',
+	'Increase Attack Speed +7',
+	'Increase Damage +57',
+	'Increase + (Level/20) x2',
+	'Increase Excellent Damage Rate +10%'
+];
+var EXC_MASTERY_ARMOR = [
+	'Increase Zen After Kill 30%',
+	'Defense Success Rate 10% PVM',
+	'Reflect Damage 5%',
+	'Damage Decrease -45',
+	'Increase Max Mana +165',
+	'Increase Max HP +165'
+];
+
 var ANCIENT_BASES = {1: 1, 2: 2, 3: 16};
 var PENTA_ELEMENTS = {1:'Fire', 2:'Water', 3:'Earth', 4:'Wind', 5:'Dark'};
 var SOCKET_NONE = 65535;
 var SOCKET_EMPTY = 65534;
 
+// ── Mastery constants ──
+var MASTERY_WEAPON = 14;
+var MASTERY_ARMOR_1 = 15;
+var MASTERY_ARMOR_2 = 18;
+
+// Mastery socket value → exc bit (for decode in tooltip)
+var MASTERY_SOCK_WEAPON = {7: 0x08, 6: 0x10};
+var MASTERY_SOCK_ARMOR1 = {8: 0x08, 6: 0x20, 7: 0x10, 9: 0x01};
+var MASTERY_SOCK_ARMOR2 = {8: 0x08, 6: 0x20, 7: 0x10, 10: 0x01};
+
 // ── Helpers ──
+function isMastery(kindA) { return kindA === MASTERY_WEAPON || kindA === MASTERY_ARMOR_1 || kindA === MASTERY_ARMOR_2; }
+function isMasteryWeapon(kindA) { return kindA === MASTERY_WEAPON; }
+function isMasteryArmor(kindA) { return kindA === MASTERY_ARMOR_1 || kindA === MASTERY_ARMOR_2; }
+
 function isAttackExc(catIndex, itemName) {
 	if (catIndex >= 0 && catIndex <= 5) return true;
 	if (catIndex >= 6 && catIndex <= 11) return false;
@@ -580,18 +618,32 @@ function isAttackExc(catIndex, itemName) {
 }
 function isWingItem(catIndex) { return catIndex === 12; }
 
-function getExcLabels(catIndex, itemName) {
+function getExcLabels(catIndex, itemName, kindA) {
+	if (isMasteryWeapon(kindA)) return EXC_MASTERY_WEAPON;
+	if (isMasteryArmor(kindA)) return EXC_MASTERY_ARMOR;
 	if (isWingItem(catIndex)) return EXC_WING_L2;
 	return isAttackExc(catIndex, itemName) ? EXC_ATK : EXC_DEF;
 }
-function describeExcForItem(val, catIndex, itemName) {
+
+function describeExcForItem(val, catIndex, itemName, kindA) {
 	if (!val) return '';
+	if (isMasteryWeapon(kindA)) {
+		var opts = [];
+		for (var i = 0; i < 6; i++) { if (val & (1 << i)) opts.push(EXC_MASTERY_WEAPON[i]); }
+		return opts.join('<br>');
+	}
+	if (isMasteryArmor(kindA)) {
+		var opts = [];
+		for (var i = 0; i < 6; i++) { if (val & (1 << i)) opts.push(EXC_MASTERY_ARMOR[i]); }
+		return opts.join('<br>');
+	}
 	if (isWingItem(catIndex)) return describeExcWing(val);
 	var labels = isAttackExc(catIndex, itemName) ? EXC_ATK : EXC_DEF;
 	var opts = [];
 	for (var i = 0; i < 6; i++) { if (val & (1 << i)) opts.push(labels[i]); }
 	return opts.join('<br>');
 }
+
 function describeExcWing(val) {
 	if (!val) return '';
 	var lines = [];
@@ -609,6 +661,50 @@ function describeExcWing(val) {
 	}
 	return lines.join('<br>');
 }
+
+function describeMasterySockets(sockets, kindA) {
+	var sockMap;
+	var labels;
+	var maxSlots;
+	if (kindA === MASTERY_WEAPON) {
+		sockMap = MASTERY_SOCK_WEAPON; labels = EXC_MASTERY_WEAPON; maxSlots = 2;
+	} else if (kindA === MASTERY_ARMOR_1) {
+		sockMap = MASTERY_SOCK_ARMOR1; labels = EXC_MASTERY_ARMOR; maxSlots = 3;
+	} else if (kindA === MASTERY_ARMOR_2) {
+		sockMap = MASTERY_SOCK_ARMOR2; labels = EXC_MASTERY_ARMOR; maxSlots = 4;
+	} else {
+		return '';
+	}
+	var lines = [];
+	for (var i = 0; i < Math.min(sockets.length, maxSlots); i++) {
+		var sv = sockets[i];
+		if (sv === SOCKET_NONE || sv === SOCKET_EMPTY) continue;
+		var excBit = sockMap[sv];
+		if (excBit !== undefined) {
+			// find label index from bit
+			for (var b = 0; b < 6; b++) {
+				if ((1 << b) === excBit) {
+					lines.push('Slot ' + (i+1) + ': ' + labels[b]);
+					break;
+				}
+			}
+		} else {
+			lines.push('Slot ' + (i+1) + ': ID ' + sv);
+		}
+	}
+	return lines.join('<br>');
+}
+
+function describeMasteryBonus(socketBonus, kindA) {
+	if (socketBonus === 255 || socketBonus <= 0) return '';
+	var type = (kindA === MASTERY_WEAPON) ? 1 : 2;
+	if (type === 1) {
+		return 'Mastery Bonus Lv' + socketBonus + ' (Damage Decrease)';
+	} else {
+		return 'Mastery Bonus Lv' + socketBonus + ' (All Stats)';
+	}
+}
+
 function describeAncient(val) {
 	if (!val) return '';
 	var t = '';
@@ -649,6 +745,7 @@ function syncExcBits(sel, hid) { var v = 0; $(sel).each(function(){ if (this.che
 function setExcBits(sel, val) { $(sel).each(function(){ this.checked = !!(val & parseInt($(this).data('bit'))); }); }
 
 function getItemType(it) {
+	if (isMastery(it.kindA)) return 'mastery';
 	if (isWingItem(it.catIndex)) return 'wing';
 	if (it.ancient) return 'ancient';
 	if (countSockets(it.sockets) > 0) return 'socket';
@@ -656,27 +753,62 @@ function getItemType(it) {
 	return 'normal';
 }
 function typeBadgeClass(type) {
-	switch(type) { case 'exc': return 'ci-badge-exc'; case 'ancient': return 'ci-badge-ancient'; case 'socket': return 'ci-badge-socket'; case 'wing': return 'ci-badge-wing'; default: return 'ci-badge-normal'; }
+	switch(type) {
+		case 'mastery': return 'ci-badge-mastery';
+		case 'exc': return 'ci-badge-exc';
+		case 'ancient': return 'ci-badge-ancient';
+		case 'socket': return 'ci-badge-socket';
+		case 'wing': return 'ci-badge-wing';
+		default: return 'ci-badge-normal';
+	}
 }
 function typeBadgeLabel(type) {
-	switch(type) { case 'exc': return 'Excellent'; case 'ancient': return 'Ancient'; case 'socket': return 'Socket'; case 'wing': return 'Wings'; default: return 'Normal'; }
+	switch(type) {
+		case 'mastery': return 'Mastery';
+		case 'exc': return 'Excellent';
+		case 'ancient': return 'Ancient';
+		case 'socket': return 'Socket';
+		case 'wing': return 'Wings';
+		default: return 'Normal';
+	}
 }
+
 function buildTypeTooltip(it) {
 	var type = getItemType(it);
 	var lines = [];
-	if (it.exc) lines.push(describeExcForItem(it.exc, it.catIndex, it.itemName));
-	if (it.ancient) lines.push('<b>Ancient:</b> ' + describeAncient(it.ancient));
-	var sockDesc = describeSocketsFull(it.sockets);
-	if (sockDesc) {
-		var total = countSockets(it.sockets);
-		var active = countActiveSockets(it.sockets);
-		lines.push('<b>Sockets (' + active + '/' + total + '):</b><br>' + sockDesc);
+
+	// Exc options (with mastery-aware labels)
+	if (it.exc) lines.push(describeExcForItem(it.exc, it.catIndex, it.itemName, it.kindA));
+
+	// Mastery socket options (serialized exc in socket slots)
+	if (isMastery(it.kindA)) {
+		var mSock = describeMasterySockets(it.sockets, it.kindA);
+		if (mSock) lines.push('<b>Mastery Exc (Sockets):</b><br>' + mSock);
+		// Mastery bonus
+		var mBonus = describeMasteryBonus(it.socketBonus, it.kindA);
+		if (mBonus) lines.push('<b>' + mBonus + '</b>');
+	} else {
+		// Normal item: ancient, sockets, pentagram
+		if (it.ancient) lines.push('<b>Ancient:</b> ' + describeAncient(it.ancient));
+		var sockDesc = describeSocketsFull(it.sockets);
+		if (sockDesc) {
+			var total = countSockets(it.sockets);
+			var active = countActiveSockets(it.sockets);
+			lines.push('<b>Sockets (' + active + '/' + total + '):</b><br>' + sockDesc);
+		}
+		var pElem = getPentagramElement(it.socketBonus);
+		if (pElem) lines.push('<b>Element:</b> ' + pElem);
+		else if (it.socketBonus !== 255 && countSockets(it.sockets) > 0) lines.push('<b>Socket Bonus:</b> ' + it.socketBonus);
 	}
-	var pElem = getPentagramElement(it.socketBonus);
-	if (pElem) lines.push('<b>Element:</b> ' + pElem);
-	else if (it.socketBonus !== 255 && countSockets(it.sockets) > 0) lines.push('<b>Socket Bonus:</b> ' + it.socketBonus);
+
+	if (isMastery(it.kindA)) {
+		var mType = isMasteryWeapon(it.kindA) ? 'Weapon' : (it.kindA === MASTERY_ARMOR_1 ? 'Armor T1' : 'Armor T2');
+		lines.unshift('<b>Mastery ' + mType + '</b>');
+	}
+
 	return lines.length ? lines.join('<br>') : typeBadgeLabel(type);
 }
+
 function buildItemTooltip(it) {
 	var lines = [];
 	lines.push('<span class="ci-pop-label">Category:</span> <span class="ci-pop-val">' + escHtml(it.category) + '</span> (' + it.catIndex + ':' + it.itemIndex + ')');
@@ -684,6 +816,10 @@ function buildItemTooltip(it) {
 	lines.push('<span class="ci-pop-label">Slot:</span> <span class="ci-pop-val">' + it.slot + '</span>');
 	lines.push('<span class="ci-pop-label">Durability:</span> <span class="ci-pop-val">' + it.durability + '</span>');
 	lines.push('<span class="ci-pop-label">Serial:</span> <span class="ci-pop-val">' + it.serial + '</span>');
+	if (isMastery(it.kindA)) {
+		var mType = isMasteryWeapon(it.kindA) ? 'Weapon (14)' : (it.kindA === MASTERY_ARMOR_1 ? 'Armor T1 (15)' : 'Armor T2 (18)');
+		lines.push('<span class="ci-pop-label">Mastery:</span> <span class="ci-pop-val">' + mType + '</span>');
+	}
 	return '<div class="ci-popover-content">' + lines.join('<br>') + '</div>';
 }
 
@@ -755,8 +891,8 @@ function findItem(code) {
 	return null;
 }
 
-function updateExcLabels(wellId, catIndex, itemName) {
-	var labels = getExcLabels(catIndex, itemName);
+function updateExcLabels(wellId, catIndex, itemName, kindA) {
+	var labels = getExcLabels(catIndex, itemName, kindA || 0);
 	$('#' + wellId + ' [data-idx]').each(function() {
 		var idx = parseInt($(this).data('idx'));
 		var lbl = labels[idx] || '-';
@@ -784,7 +920,7 @@ function onItemChange(selId, wellId, ancientSelId) {
 	var code = parseInt($(selId).val());
 	var item = findItem(code);
 	if (item) {
-		updateExcLabels(wellId, item.catIndex, item.name);
+		updateExcLabels(wellId, item.catIndex, item.name, item.kindA);
 		updateAncientSelect(ancientSelId, code);
 	}
 }
@@ -877,7 +1013,7 @@ function loadItems(guid, name) {
 				h += '<td>' + yesNo(it.luck) + '</td>';
 				h += '<td>' + describeOption(it.option) + '</td>';
 				h += '<td>';
-				h += '<button class="btn btn-xs btn-primary" onclick=\'showEditModal(' + JSON.stringify({i:i, c:it.itemCode, l:it.level, d:it.durability, s:it.skill, lk:it.luck, o:it.option, e:it.exc, a:it.ancient, n:it.itemName, cat:it.catIndex}) + ')\' title="Edit"><i class="fa fa-pencil"></i></button> ';
+				h += '<button class="btn btn-xs btn-primary" onclick=\'showEditModal(' + JSON.stringify({i:i, c:it.itemCode, l:it.level, d:it.durability, s:it.skill, lk:it.luck, o:it.option, e:it.exc, a:it.ancient, n:it.itemName, cat:it.catIndex, kA:it.kindA}) + ')\' title="Edit"><i class="fa fa-pencil"></i></button> ';
 				h += '<button class="btn btn-xs btn-danger" onclick="showDeleteModal(' + i + ',\'' + escHtml(it.itemName) + ' +' + it.level + '\')" title="Remove"><i class="fa fa-trash"></i></button>';
 				h += '</td></tr>';
 			}
@@ -908,7 +1044,7 @@ function showEditModal(d) {
 		$('#editNewLuck').prop('checked', !!d.lk);
 		$('#editNewOption').val(d.o);
 
-		updateExcLabels('editExcWell', d.cat, d.n);
+		updateExcLabels('editExcWell', d.cat, d.n, d.kA);
 		setExcBits('.exc-bit', d.e);
 		$('#editNewExc').val(d.e);
 
@@ -942,7 +1078,7 @@ function showAddItemModal() {
 		setExcBits('.add-exc-bit', 0);
 		$('#addExc').val(0);
 
-		updateExcLabels('addExcWell', 0, '');
+		updateExcLabels('addExcWell', 0, '', 0);
 		updateAncientSelect('addNewAncient', 0);
 
 		$('#addItemModal').modal('show');

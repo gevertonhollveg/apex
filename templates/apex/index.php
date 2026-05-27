@@ -123,8 +123,8 @@ if(!isset($_REQUEST['subpage'])) {
                     <i class="fa-solid fa-user-plus"></i> <?php echo lang('menu_txt_3', true); ?>
                 </button>
             <?php else: ?>
-                <a href="<?php echo __BASE_URL__; ?>myaccount" class="btn-nav btn-nav-ghost">
-                    <i class="fa-solid fa-user"></i> <?php echo lang('module_titles_txt_6', true); ?>
+                <a href="<?php echo __BASE_URL__; ?>usercp/myaccount" class="btn-nav btn-nav-ghost">
+                    <i class="fa-solid fa-user"></i> <?php echo lang('module_titles_txt_4', true); ?>
                 </a>
                 <a href="<?php echo __BASE_URL__; ?>usercp" class="btn-nav btn-nav-ghost">
                     <i class="fa-solid fa-sliders"></i> UserCP

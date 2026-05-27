@@ -475,6 +475,7 @@ var currentAccountName = '';
 var itemSelectLoaded = false;
 var itemSelectData = [];
 
+function _ciInit() {
 // ── Search account ──
 $('#searchAccountForm').on('submit', function(e) {
 	e.preventDefault();
@@ -515,6 +516,7 @@ $('#searchAccountForm').on('submit', function(e) {
 		alert('Request failed. Check connection.');
 	});
 });
+} // end _ciInit
 
 // ── Load items for character ──
 function loadItems(guid, charName) {
@@ -638,4 +640,15 @@ function escapeHtml(str) {
 	if (!str) return '';
 	return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// Wait for jQuery to be available then initialize
+(function waitForJQuery() {
+	if (typeof $ !== 'undefined') {
+		$(document).ready(function() { _ciInit(); });
+	} else {
+		document.addEventListener('DOMContentLoaded', function() {
+			if (typeof $ !== 'undefined') { _ciInit(); }
+		});
+	}
+})();
 </script>

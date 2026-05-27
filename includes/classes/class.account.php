@@ -58,10 +58,10 @@ class Account extends common {
 			
 			# send verification email
 			$this->sendRegistrationVerificationEmail($username,$email,$verificationKey);
-			message('success', lang('success_18',true));
 			if($disableRedirect) {
 				return array('success' => true, 'message' => lang('success_18',true));
 			}
+			message('success', lang('success_18',true));
 			return;
 		}
 		
@@ -86,11 +86,10 @@ class Account extends common {
 		}
 		
 		# success message
-		message('success', lang('success_1',true));
-
 		if($disableRedirect) {
 			return array('success' => true, 'message' => lang('success_1',true));
 		}
+		message('success', lang('success_1',true));
 		
 		
 		if($regCfg['automatic_login']) {

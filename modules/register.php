@@ -13,6 +13,7 @@
 
 if(isLoggedIn()) {
 	if(isset($_POST['webengineRegister_ajax']) && $_POST['webengineRegister_ajax'] == '1') {
+		while(ob_get_level()) ob_end_clean();
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode(array('success' => false, 'message' => lang('error_4',true), 'tab' => 'register'));
 		die();
@@ -31,6 +32,7 @@ if(!function_exists('registerJsonResponse')) {
 			'success' => (bool)$success,
 			'message' => (string)$message,
 		), $extra);
+		while(ob_get_level()) ob_end_clean();
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode($response);
 		die();

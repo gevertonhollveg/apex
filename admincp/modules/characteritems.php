@@ -1,30 +1,6 @@
 <?php
 /**
- * Character Item Inventory Manager
- * AdminCP Module
- *
- * Manages character items from the character_item_inventory table.
- *
- * DB field format (semicolon-separated inside curly braces):
- * [0]  invType      – 0=Equipment, 1=Inventory, 2=PersonalStore, 3=Warehouse, 8=Muun
- * [1]  slot         – position in inventory grid
- * [2]  itemCode     – (512 * categoryId) + itemIndex  →  ItemList.xml
- * [3]  unknown
- * [4]  serial       – unique item serial number
- * [5]  unknown
- * [6]  level        – 0-15
- * [7]  durability
- * [8]  unknown
- * [9]  skill        – 0 or 1
- * [10] luck         – 0 or 1
- * [11] option       – add-option value (0,4,8,12,16)
- * [12] exc          – excellent options bitmask (6 bits)
- * [13] ancient      – ancient option bitmask
- * [14] unknown
- * [15] unknown
- * [16-20] sockets   – 5 socket slots (65535 = none)
- * [21] socketBonus  – socket set bonus (255 = none)
- * [22-41] extended  – remaining fields
+ * Character Item Inventory Manager — AdminCP Module
  */
 
 // ─── Item name loader ───
@@ -61,20 +37,36 @@ function loadItemNameMapAdmin($itemListPath) {
 	return $map;
 }
 
+// ─── Ancient set type loader ───
+function loadAncientSetTypeMap($xmlPath) {
+	$map = array();
+	if (!is_file($xmlPath)) return $map;
+	$xml = @simplexml_load_file($xmlPath, 'SimpleXMLElement', LIBXML_NONET);
+	if (!$xml) return $map;
+	foreach ($xml->Category as $cat) {
+		$catIndex = (int)$cat['Index'];
+		foreach ($cat->Item as $item) {
+			$itemIndex = (int)$item['Index'];
+			$code = 512 * $catIndex + $itemIndex;
+			$types = array();
+			if ((int)$item['AncientId1'] != 0) $types[] = 1;
+			if ((int)$item['AncientId2'] != 0) $types[] = 2;
+			if ((int)$item['AncientId3'] != 0) $types[] = 3;
+			if (!empty($types)) $map[$code] = $types;
+		}
+	}
+	return $map;
+}
+
 function getInventoryTypeName($type) {
-	$types = array(
-		0 => 'Equipment',
-		1 => 'Inventory',
-		2 => 'Personal Store',
-		3 => 'Warehouse',
-		8 => 'Muun Inventory',
-	);
+	$types = array(0 => 'Equipment', 1 => 'Inventory', 2 => 'Personal Store', 3 => 'Warehouse', 8 => 'Muun Inventory');
 	return isset($types[$type]) ? $types[$type] : 'Type ' . $type;
 }
 
-// ─── Load item map ───
+// ─── Load maps ───
 $itemListPath = __ROOT_DIR__ . 'modules/bags/ItemList.xml';
 $itemMap = loadItemNameMapAdmin($itemListPath);
+$ancientMap = loadAncientSetTypeMap(__ROOT_DIR__ . 'admincp/inc/item/ItemSetType.xml');
 
 echo '<h1 class="page-header">Character Item Inventory</h1>';
 
@@ -82,12 +74,9 @@ echo '<h1 class="page-header">Character Item Inventory</h1>';
 if (isset($_GET['ajax'])) {
 	header('Content-Type: application/json; charset=utf-8');
 	while (ob_get_level()) ob_end_clean();
-
 	$response = array('success' => false, 'message' => 'Invalid request.');
-
 	try {
 		switch ($_GET['ajax']) {
-
 			case 'characters':
 				if (!isset($_GET['account']) || !check_value($_GET['account'])) throw new Exception('Account name required.');
 				$accName = $_GET['account'];
@@ -98,12 +87,7 @@ if (isset($_GET['ajax'])) {
 				$charList = array();
 				if (is_array($chars)) {
 					foreach ($chars as $c) {
-						$charList[] = array(
-							'name'  => $c[_CLMN_CHR_NAME_],
-							'guid'  => $c[_CLMN_CHR_GUID_],
-							'class' => $c[_CLMN_CHR_CLASS_],
-							'level' => $c[_CLMN_CHR_LVL_],
-						);
+						$charList[] = array('name' => $c[_CLMN_CHR_NAME_], 'guid' => $c[_CLMN_CHR_GUID_], 'class' => $c[_CLMN_CHR_CLASS_], 'level' => $c[_CLMN_CHR_LVL_]);
 					}
 				}
 				$response = array('success' => true, 'account' => $accName, 'accountId' => $accId, 'characters' => $charList);
@@ -117,16 +101,14 @@ if (isset($_GET['ajax'])) {
 					$response = array('success' => true, 'guid' => $guid, 'items' => array());
 					break;
 				}
-				$rawData = $row['InventoryData'];
-				preg_match_all('/\{([^}]+)\}/', $rawData, $matches);
+				preg_match_all('/\{([^}]+)\}/', $row['InventoryData'], $matches);
 				$items = array();
 				if (!empty($matches[1])) {
 					foreach ($matches[1] as $itemStr) {
 						$f = explode(';', $itemStr);
 						if (count($f) < 16) continue;
 						$itemCode = (int)$f[2];
-						$itemName = 'Unknown Item';
-						$catName = ''; $catIdx = -1; $itmIdx = -1;
+						$itemName = 'Unknown Item'; $catName = ''; $catIdx = -1; $itmIdx = -1;
 						if (isset($itemMap[$itemCode])) {
 							$itemName = $itemMap[$itemCode]['name'];
 							$catName  = $itemMap[$itemCode]['category'];
@@ -134,28 +116,15 @@ if (isset($_GET['ajax'])) {
 							$itmIdx   = $itemMap[$itemCode]['itemIndex'];
 						}
 						$sockets = array();
-						for ($s = 16; $s <= 20; $s++) {
-							$sockets[] = isset($f[$s]) ? (int)$f[$s] : 65535;
-						}
+						for ($s = 16; $s <= 20; $s++) $sockets[] = isset($f[$s]) ? (int)$f[$s] : 65535;
 						$items[] = array(
-							'invType'     => (int)$f[0],
-							'invTypeName' => getInventoryTypeName((int)$f[0]),
-							'slot'        => (int)$f[1],
-							'itemCode'    => $itemCode,
-							'itemName'    => $itemName,
-							'category'    => $catName,
-							'catIndex'    => $catIdx,
-							'itemIndex'   => $itmIdx,
-							'serial'      => $f[4],
-							'level'       => (int)$f[6],
-							'durability'  => (int)$f[7],
-							'skill'       => (int)$f[9],
-							'luck'        => (int)$f[10],
-							'option'      => (int)$f[11],
-							'exc'         => (int)$f[12],
-							'ancient'     => (int)$f[13],
-							'sockets'     => $sockets,
-							'socketBonus' => isset($f[21]) ? (int)$f[21] : 255,
+							'invType' => (int)$f[0], 'invTypeName' => getInventoryTypeName((int)$f[0]),
+							'slot' => (int)$f[1], 'itemCode' => $itemCode, 'itemName' => $itemName,
+							'category' => $catName, 'catIndex' => $catIdx, 'itemIndex' => $itmIdx,
+							'serial' => $f[4], 'level' => (int)$f[6], 'durability' => (int)$f[7],
+							'skill' => (int)$f[9], 'luck' => (int)$f[10], 'option' => (int)$f[11],
+							'exc' => (int)$f[12], 'ancient' => (int)$f[13],
+							'sockets' => $sockets, 'socketBonus' => isset($f[21]) ? (int)$f[21] : 255,
 						);
 					}
 				}
@@ -183,13 +152,11 @@ if (isset($_POST['item_action'])) {
 		$action = $_POST['item_action'];
 		if (!isset($_POST['char_guid']) || !is_numeric($_POST['char_guid'])) throw new Exception('Invalid character GUID.');
 		$guid = (int)$_POST['char_guid'];
-
 		if (isset($_POST['account_name']) && check_value($_POST['account_name'])) {
 			if ($common->accountOnline($_POST['account_name'])) {
 				throw new Exception('The account is currently online. Please wait until the player disconnects.');
 			}
 		}
-
 		$row = $dB->query_fetch_single("SELECT InventoryData FROM character_item_inventory WHERE GUID = ?", array($guid));
 		$rawData = ($row && isset($row['InventoryData'])) ? $row['InventoryData'] : '';
 		preg_match_all('/\{([^}]+)\}/', $rawData, $matches);
@@ -202,7 +169,6 @@ if (isset($_POST['item_action'])) {
 				if (!isset($allItems[$idx])) throw new Exception('Item not found at position ' . $idx . '.');
 				$fields = explode(';', $allItems[$idx]);
 				if (count($fields) < 16) throw new Exception('Invalid item data.');
-
 				if (isset($_POST['new_item_code']) && is_numeric($_POST['new_item_code'])) $fields[2] = (int)$_POST['new_item_code'];
 				if (isset($_POST['new_level']) && is_numeric($_POST['new_level'])) {
 					$v = (int)$_POST['new_level'];
@@ -214,8 +180,8 @@ if (isset($_POST['item_action'])) {
 					if ($v < 0 || $v > 255) throw new Exception('Durability must be 0-255.');
 					$fields[7] = $v;
 				}
-				if (isset($_POST['new_skill']))   $fields[9]  = (int)$_POST['new_skill'] ? 1 : 0;
-				if (isset($_POST['new_luck']))    $fields[10] = (int)$_POST['new_luck'] ? 1 : 0;
+				$fields[9]  = isset($_POST['new_skill']) ? 1 : 0;
+				$fields[10] = isset($_POST['new_luck']) ? 1 : 0;
 				if (isset($_POST['new_option']) && is_numeric($_POST['new_option'])) {
 					$v = (int)$_POST['new_option'];
 					if (!in_array($v, array(0, 4, 8, 12, 16))) throw new Exception('Option must be 0, 4, 8, 12 or 16.');
@@ -227,7 +193,6 @@ if (isset($_POST['item_action'])) {
 					$fields[12] = $v;
 				}
 				if (isset($_POST['new_ancient']) && is_numeric($_POST['new_ancient'])) $fields[13] = (int)$_POST['new_ancient'];
-
 				$allItems[$idx] = implode(';', $fields);
 				message('success', 'Item updated successfully.');
 				break;
@@ -245,44 +210,34 @@ if (isset($_POST['item_action'])) {
 				if (!isset($_POST['add_slot']) || !is_numeric($_POST['add_slot'])) throw new Exception('Invalid slot.');
 				if (!isset($_POST['add_item_code']) || !is_numeric($_POST['add_item_code'])) throw new Exception('Invalid item code.');
 				if (!isset($_POST['add_level']) || !is_numeric($_POST['add_level'])) throw new Exception('Invalid level.');
-
 				$addLevel = (int)$_POST['add_level'];
 				if ($addLevel < 0 || $addLevel > 15) throw new Exception('Level must be between 0 and 15.');
 				$addDur    = isset($_POST['add_durability']) && is_numeric($_POST['add_durability']) ? (int)$_POST['add_durability'] : 255;
-				$addSkill  = isset($_POST['add_skill']) ? ((int)$_POST['add_skill'] ? 1 : 0) : 0;
-				$addLuck   = isset($_POST['add_luck']) ? ((int)$_POST['add_luck'] ? 1 : 0) : 0;
+				$addSkill  = isset($_POST['add_skill']) ? 1 : 0;
+				$addLuck   = isset($_POST['add_luck']) ? 1 : 0;
 				$addOpt    = isset($_POST['add_option']) && is_numeric($_POST['add_option']) ? (int)$_POST['add_option'] : 0;
 				$addExc    = isset($_POST['add_exc']) && is_numeric($_POST['add_exc']) ? (int)$_POST['add_exc'] : 0;
 				$addAnc    = isset($_POST['add_ancient']) && is_numeric($_POST['add_ancient']) ? (int)$_POST['add_ancient'] : 0;
-
 				if (!in_array($addOpt, array(0, 4, 8, 12, 16))) throw new Exception('Option must be 0, 4, 8, 12 or 16.');
 				if ($addExc < 0 || $addExc > 63) throw new Exception('Excellent must be 0-63.');
-
 				$addSerial = mt_rand(10000, 99999);
-
 				$newFields = array(
 					(int)$_POST['add_inv_type'], (int)$_POST['add_slot'], (int)$_POST['add_item_code'], 0, $addSerial, 0,
-					$addLevel, $addDur, 0,
-					$addSkill, $addLuck, $addOpt, $addExc, $addAnc, 0, 0,
+					$addLevel, $addDur, 0, $addSkill, $addLuck, $addOpt, $addExc, $addAnc, 0, 0,
 					65535, 65535, 65535, 65535, 65535, 255,
-					0, 0, 0, 0, 0, 0, 0, 0, 0,
-					255, 255, 255, 255, 255, 255,
-					0, 0, 254, 254, 254, 254
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 0, 0, 254, 254, 254, 254
 				);
 				$allItems[] = implode(';', $newFields);
 				message('success', 'Item added successfully.');
 				break;
-
 			default:
 				throw new Exception('Invalid action.');
 		}
-
 		$newData = '';
 		foreach ($allItems as $i => $item) {
 			if ($i > 0) $newData .= ",\n";
 			$newData .= '{' . $item . '}';
 		}
-
 		if ($row) {
 			$dB->query("UPDATE character_item_inventory SET InventoryData = ? WHERE GUID = ?", array($newData, $guid));
 		} else {
@@ -310,7 +265,6 @@ if (isset($_POST['item_action'])) {
 		</div>
 	</div>
 </div>
-
 <!-- Characters -->
 <div class="row" id="charactersSection" style="display:none;">
 	<div class="col-md-12">
@@ -332,8 +286,11 @@ if (isset($_POST['item_action'])) {
 .ci-popover-content { font-size:12px; line-height:1.6; }
 .ci-popover-content .ci-pop-label { color:#888; font-size:11px; }
 .ci-popover-content .ci-pop-val { font-weight:bold; }
-.ci-opts-line { margin:2px 0; }
+.ci-exc-well .checkbox { margin:3px 0; }
+.ci-exc-well .checkbox label { font-weight:normal; font-size:12px; }
+.ci-item-filter { margin-bottom:6px; }
 </style>
+
 <!-- Items Table -->
 <div class="row" id="itemsSection" style="display:none;">
 	<div class="col-md-12">
@@ -385,48 +342,47 @@ if (isset($_POST['item_action'])) {
 					</div>
 					<div class="form-group">
 						<label>Item</label>
-						<select class="form-control" name="new_item_code" id="editNewItemCode"></select>
+						<div class="row ci-item-filter">
+							<div class="col-sm-5">
+								<select class="form-control input-sm" id="editItemCat"><option value="">All Categories</option></select>
+							</div>
+							<div class="col-sm-7">
+								<input type="text" class="form-control input-sm" id="editItemSearch" placeholder="Search item name...">
+							</div>
+						</div>
+						<select class="form-control" name="new_item_code" id="editNewItemCode" size="5"></select>
 					</div>
 					<div class="row">
-						<div class="col-sm-4"><div class="form-group"><label>Level (0-15)</label><input type="number" class="form-control" name="new_level" id="editNewLevel" min="0" max="15"></div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="new_durability" id="editNewDurability" min="0" max="255"></div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Option</label>
+						<div class="col-sm-3"><div class="form-group"><label>Level (0-15)</label><input type="number" class="form-control" name="new_level" id="editNewLevel" min="0" max="15"></div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="new_durability" id="editNewDurability" min="0" max="255"></div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Option</label>
 							<select class="form-control" name="new_option" id="editNewOption">
-								<option value="0">None</option><option value="4">+4%</option><option value="8">+8%</option><option value="12">+12%</option><option value="16">+16%</option>
+								<option value="0">0</option><option value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option>
 							</select>
+						</div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Ancient</label>
+							<select class="form-control" name="new_ancient" id="editNewAncient"><option value="0">None</option></select>
 						</div></div>
 					</div>
 					<div class="row">
-						<div class="col-sm-4"><div class="form-group"><label>Skill</label>
-							<select class="form-control" name="new_skill" id="editNewSkill"><option value="0">No</option><option value="1">Yes</option></select>
-						</div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Luck</label>
-							<select class="form-control" name="new_luck" id="editNewLuck"><option value="0">No</option><option value="1">Yes</option></select>
-						</div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Ancient</label>
-							<select class="form-control" name="new_ancient" id="editNewAncient">
-								<option value="0">None</option>
-								<option value="5">Type 1 Stat+5</option><option value="9">Type 1 Stat+10</option><option value="13">Type 1 Stat+15</option>
-								<option value="6">Type 2 Stat+5</option><option value="10">Type 2 Stat+10</option><option value="14">Type 2 Stat+15</option>
-								<option value="20">Type 3 Stat+5</option><option value="24">Type 3 Stat+10</option><option value="28">Type 3 Stat+15</option>
-							</select>
-						</div></div>
+						<div class="col-sm-3">
+							<div class="checkbox"><label><input type="checkbox" name="new_skill" id="editNewSkill" value="1"> <strong>Skill</strong></label></div>
+						</div>
+						<div class="col-sm-3">
+							<div class="checkbox"><label><input type="checkbox" name="new_luck" id="editNewLuck" value="1"> <strong>Luck</strong></label></div>
+						</div>
 					</div>
 					<div class="form-group">
 						<label>Excellent Options</label>
-						<div class="well well-sm" style="margin-bottom:0;">
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="1"> Bit1 (0x01)</label>
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="2"> Bit2 (0x02)</label>
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="4"> Bit3 (0x04)</label>
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="8"> Bit4 (0x08)</label>
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="16"> Bit5 (0x10)</label>
-							<label class="checkbox-inline"><input type="checkbox" class="exc-bit" data-bit="32"> Bit6 (0x20)</label>
+						<div class="well well-sm ci-exc-well" id="editExcWell">
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="1" data-idx="0"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="2" data-idx="1"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="4" data-idx="2"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="8" data-idx="3"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="16" data-idx="4"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="exc-bit" data-bit="32" data-idx="5"> <span class="exc-lbl"></span></label></div>
 						</div>
 						<input type="hidden" name="new_exc" id="editNewExc" value="0">
-						<p class="help-block" style="margin-top:4px;font-size:11px;">
-							<b>Attack:</b> 0x01=ManaRecov, 0x02=HPRecov, 0x04=Speed+7, 0x08=Dmg+2%, 0x10=Dmg+Lv/20, 0x20=ExcDmg+10%<br>
-							<b>Defense:</b> 0x01=Zen+30%, 0x02=DefRate+10%, 0x04=Reflect5%, 0x08=Dmg-4%, 0x10=MaxMana+4%, 0x20=MaxHP+4%
-						</p>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -461,42 +417,45 @@ if (isset($_POST['item_action'])) {
 					</div>
 					<div class="form-group">
 						<label>Item</label>
-						<select class="form-control" name="add_item_code" id="addItemCode"></select>
+						<div class="row ci-item-filter">
+							<div class="col-sm-5">
+								<select class="form-control input-sm" id="addItemCat"><option value="">All Categories</option></select>
+							</div>
+							<div class="col-sm-7">
+								<input type="text" class="form-control input-sm" id="addItemSearch" placeholder="Search item name...">
+							</div>
+						</div>
+						<select class="form-control" name="add_item_code" id="addItemCode" size="5"></select>
 					</div>
 					<div class="row">
-						<div class="col-sm-4"><div class="form-group"><label>Level (0-15)</label><input type="number" class="form-control" name="add_level" id="addLevel" min="0" max="15" value="0"></div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="add_durability" id="addDurability" min="0" max="255" value="255"></div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Option</label>
+						<div class="col-sm-3"><div class="form-group"><label>Level (0-15)</label><input type="number" class="form-control" name="add_level" id="addLevel" min="0" max="15" value="0"></div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="add_durability" id="addDurability" min="0" max="255" value="255"></div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Option</label>
 							<select class="form-control" name="add_option" id="addOptionVal">
-								<option value="0">None</option><option value="4">+4%</option><option value="8">+8%</option><option value="12">+12%</option><option value="16">+16%</option>
+								<option value="0">0</option><option value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option>
 							</select>
+						</div></div>
+						<div class="col-sm-3"><div class="form-group"><label>Ancient</label>
+							<select class="form-control" name="add_ancient" id="addNewAncient"><option value="0">None</option></select>
 						</div></div>
 					</div>
 					<div class="row">
-						<div class="col-sm-4"><div class="form-group"><label>Skill</label>
-							<select class="form-control" name="add_skill" id="addSkill"><option value="0">No</option><option value="1">Yes</option></select>
-						</div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Luck</label>
-							<select class="form-control" name="add_luck" id="addLuck"><option value="0">No</option><option value="1">Yes</option></select>
-						</div></div>
-						<div class="col-sm-4"><div class="form-group"><label>Ancient</label>
-							<select class="form-control" name="add_ancient" id="addAncient">
-								<option value="0">None</option>
-								<option value="5">Type 1 Stat+5</option><option value="9">Type 1 Stat+10</option><option value="13">Type 1 Stat+15</option>
-								<option value="6">Type 2 Stat+5</option><option value="10">Type 2 Stat+10</option><option value="14">Type 2 Stat+15</option>
-								<option value="20">Type 3 Stat+5</option><option value="24">Type 3 Stat+10</option><option value="28">Type 3 Stat+15</option>
-							</select>
-						</div></div>
+						<div class="col-sm-3">
+							<div class="checkbox"><label><input type="checkbox" name="add_skill" id="addSkill" value="1"> <strong>Skill</strong></label></div>
+						</div>
+						<div class="col-sm-3">
+							<div class="checkbox"><label><input type="checkbox" name="add_luck" id="addLuck" value="1"> <strong>Luck</strong></label></div>
+						</div>
 					</div>
 					<div class="form-group">
 						<label>Excellent Options</label>
-						<div class="well well-sm" style="margin-bottom:0;">
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="1"> Bit1</label>
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="2"> Bit2</label>
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="4"> Bit3</label>
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="8"> Bit4</label>
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="16"> Bit5</label>
-							<label class="checkbox-inline"><input type="checkbox" class="add-exc-bit" data-bit="32"> Bit6</label>
+						<div class="well well-sm ci-exc-well" id="addExcWell">
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="1" data-idx="0"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="2" data-idx="1"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="4" data-idx="2"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="8" data-idx="3"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="16" data-idx="4"> <span class="exc-lbl"></span></label></div>
+							<div class="checkbox"><label><input type="checkbox" class="add-exc-bit" data-bit="32" data-idx="5"> <span class="exc-lbl"></span></label></div>
 						</div>
 						<input type="hidden" name="add_exc" id="addExc" value="0">
 					</div>
@@ -540,88 +499,195 @@ if (isset($_POST['item_action'])) {
 var baseAdminUrl = '<?php echo admincp_base("characteritems"); ?>';
 var currentGuid = null;
 var currentAccountName = '';
-var itemSelectLoaded = false;
+var allItemsData = [];
+var itemCategories = [];
+var ancientMapData = <?php echo json_encode((object)$ancientMap); ?>;
+var dataLoaded = false;
 
-var EXC_ATK = ['Mana Recovery','HP Recovery','Speed +7','Dmg +2%','Dmg +Lv/20','ExcDmg +10%'];
-var EXC_DEF = ['Zen +30%','DefRate +10%','Reflect 5%','Dmg -4%','MaxMana +4%','MaxHP +4%'];
+// ── Exc option labels ──
+var EXC_ATK = [
+	'Increase Mana after monster kill +Mana/8',
+	'Increase Life after monster kill +Life/8',
+	'Increase Attacking(Wizardry) speed +7',
+	'Increase Damage +2%',
+	'Increase Damage +level/20',
+	'Excellent Damage rate +10%'
+];
+var EXC_DEF = [
+	'Increases acquisition rate of Zen after hunting monsters +30%',
+	'Defense success rate +10%',
+	'Reflect Damage +5%',
+	'Damage Decrease +4%',
+	'Increase Max Mana +4%',
+	'Increase Max HP +4%'
+];
 
-function describeExcFull(val) {
-	if (!val) return '';
-	var atk=[],def=[];
-	for (var i=0;i<6;i++) { if (val&(1<<i)) { atk.push(EXC_ATK[i]); def.push(EXC_DEF[i]); } }
-	var out = '';
-	if (atk.length) out += '<b>Atk:</b> '+atk.join(', ');
-	if (def.length) out += (out?'<br>':'')+'<b>Def:</b> '+def.join(', ');
-	return out;
+var ANCIENT_BASES = {1: 1, 2: 2, 3: 16};
+
+// ── Helpers ──
+function isAttackExc(catIndex, itemName) {
+	if (catIndex >= 0 && catIndex <= 5) return true;
+	if (catIndex >= 6 && catIndex <= 11) return false;
+	if (itemName && itemName.toLowerCase().indexOf('pendant') !== -1) return true;
+	return false;
 }
-function describeExcShort(val) {
+function getExcLabels(catIndex, itemName) {
+	return isAttackExc(catIndex, itemName) ? EXC_ATK : EXC_DEF;
+}
+function describeExcForItem(val, catIndex, itemName) {
 	if (!val) return '';
-	var n=0; for(var i=0;i<6;i++) if(val&(1<<i)) n++;
-	return n+'x Opt';
+	var labels = getExcLabels(catIndex, itemName);
+	var opts = [];
+	for (var i = 0; i < 6; i++) { if (val & (1 << i)) opts.push(labels[i]); }
+	return opts.join('<br>');
 }
 function describeAncient(val) {
 	if (!val) return '';
-	var t=''; if(val&16) t='Type 3'; else if(val&2) t='Type 2'; else if(val&1) t='Type 1';
-	var sv=val&12; var s=sv===4?'Stat+5':(sv===8?'Stat+10':(sv===12?'Stat+15':''));
-	return t+(s?' '+s:'');
+	var t = '';
+	if (val & 16) t = 'Type 3'; else if (val & 2) t = 'Type 2'; else if (val & 1) t = 'Type 1';
+	var sv = val & 12;
+	var s = sv === 4 ? 'Stat+5' : (sv === 8 ? 'Stat+10' : (sv === 12 ? 'Stat+15' : ''));
+	return t + (s ? ' ' + s : '');
 }
-function describeOption(val) { return val ? '+'+val+'%' : '-'; }
+function describeOption(val) { return String(val); }
 function describeSockets(arr) {
-	var a=[];
-	for(var i=0;i<arr.length;i++) { if(arr[i]!==65535) a.push('S'+(i+1)+':'+arr[i]); }
+	var a = [];
+	for (var i = 0; i < arr.length; i++) { if (arr[i] !== 65535) a.push('S' + (i+1) + ':' + arr[i]); }
 	return a.length ? a.join(', ') : '';
 }
 function countSockets(arr) {
-	var n=0; for(var i=0;i<arr.length;i++) if(arr[i]!==65535) n++; return n;
+	var n = 0; for (var i = 0; i < arr.length; i++) if (arr[i] !== 65535) n++; return n;
 }
 function yesNo(v) { return v ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>'; }
 function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
-function syncExcBits(sel, hid) { var v=0; $(sel).each(function(){if(this.checked) v|=parseInt($(this).data('bit'));}); $('#'+hid).val(v); }
-function setExcBits(sel, val) { $(sel).each(function(){this.checked=!!(val&parseInt($(this).data('bit')));}); }
+
+function syncExcBits(sel, hid) { var v = 0; $(sel).each(function(){ if (this.checked) v |= parseInt($(this).data('bit')); }); $('#' + hid).val(v); }
+function setExcBits(sel, val) { $(sel).each(function(){ this.checked = !!(val & parseInt($(this).data('bit'))); }); }
 
 function getItemType(it) {
-	var hasSockets = countSockets(it.sockets) > 0;
 	if (it.ancient) return 'ancient';
-	if (hasSockets) return 'socket';
+	if (countSockets(it.sockets) > 0) return 'socket';
 	if (it.exc) return 'exc';
 	return 'normal';
 }
 function typeBadgeClass(type) {
-	switch(type) {
-		case 'exc': return 'ci-badge-exc';
-		case 'ancient': return 'ci-badge-ancient';
-		case 'socket': return 'ci-badge-socket';
-		default: return 'ci-badge-normal';
-	}
+	switch(type) { case 'exc': return 'ci-badge-exc'; case 'ancient': return 'ci-badge-ancient'; case 'socket': return 'ci-badge-socket'; default: return 'ci-badge-normal'; }
 }
 function typeBadgeLabel(type) {
-	switch(type) {
-		case 'exc': return 'Excellent';
-		case 'ancient': return 'Ancient';
-		case 'socket': return 'Socket';
-		default: return 'Normal';
-	}
+	switch(type) { case 'exc': return 'Excellent'; case 'ancient': return 'Ancient'; case 'socket': return 'Socket'; default: return 'Normal'; }
 }
 function buildTypeTooltip(it) {
-	var type = getItemType(it);
 	var lines = [];
-	if (it.exc) lines.push(describeExcFull(it.exc));
-	if (it.ancient) lines.push('<b>Ancient:</b> '+describeAncient(it.ancient));
+	if (it.exc) lines.push(describeExcForItem(it.exc, it.catIndex, it.itemName));
+	if (it.ancient) lines.push('<b>Ancient:</b> ' + describeAncient(it.ancient));
 	var sk = describeSockets(it.sockets);
-	if (sk) lines.push('<b>Sockets:</b> '+sk);
-	if (it.socketBonus && it.socketBonus !== 255) lines.push('<b>Socket Bonus:</b> '+it.socketBonus);
-	return lines.length ? lines.join('<br>') : typeBadgeLabel(type);
+	if (sk) lines.push('<b>Sockets:</b> ' + sk);
+	if (it.socketBonus && it.socketBonus !== 255) lines.push('<b>Socket Bonus:</b> ' + it.socketBonus);
+	return lines.length ? lines.join('<br>') : typeBadgeLabel(getItemType(it));
 }
 function buildItemTooltip(it) {
 	var lines = [];
-	lines.push('<span class="ci-pop-label">Category:</span> <span class="ci-pop-val">'+escHtml(it.category)+'</span> ('+it.catIndex+':'+it.itemIndex+')');
-	lines.push('<span class="ci-pop-label">Inventory:</span> <span class="ci-pop-val">'+escHtml(it.invTypeName)+'</span>');
-	lines.push('<span class="ci-pop-label">Slot:</span> <span class="ci-pop-val">'+it.slot+'</span>');
-	lines.push('<span class="ci-pop-label">Durability:</span> <span class="ci-pop-val">'+it.durability+'</span>');
-	lines.push('<span class="ci-pop-label">Serial:</span> <span class="ci-pop-val">'+it.serial+'</span>');
-	return '<div class="ci-popover-content">'+lines.join('<br>')+'</div>';
+	lines.push('<span class="ci-pop-label">Category:</span> <span class="ci-pop-val">' + escHtml(it.category) + '</span> (' + it.catIndex + ':' + it.itemIndex + ')');
+	lines.push('<span class="ci-pop-label">Inventory:</span> <span class="ci-pop-val">' + escHtml(it.invTypeName) + '</span>');
+	lines.push('<span class="ci-pop-label">Slot:</span> <span class="ci-pop-val">' + it.slot + '</span>');
+	lines.push('<span class="ci-pop-label">Durability:</span> <span class="ci-pop-val">' + it.durability + '</span>');
+	lines.push('<span class="ci-pop-label">Serial:</span> <span class="ci-pop-val">' + it.serial + '</span>');
+	return '<div class="ci-popover-content">' + lines.join('<br>') + '</div>';
 }
 
+// ── Data loading ──
+function loadData(cb) {
+	if (dataLoaded) { if (cb) cb(); return; }
+	$.getJSON(baseAdminUrl + '&ajax=itemlist', function(r) {
+		if (!r.success) return;
+		allItemsData = r.items;
+		var catMap = {};
+		for (var i = 0; i < r.items.length; i++) {
+			var it = r.items[i];
+			if (!catMap[it.catIndex]) catMap[it.catIndex] = it.category;
+		}
+		itemCategories = [];
+		var keys = Object.keys(catMap).sort(function(a, b) { return parseInt(a) - parseInt(b); });
+		for (var k = 0; k < keys.length; k++) {
+			itemCategories.push({ index: parseInt(keys[k]), name: catMap[keys[k]] });
+		}
+		dataLoaded = true;
+		if (cb) cb();
+	});
+}
+
+function populateCatSelect(selId) {
+	var $sel = $(selId).empty().append($('<option>').val('').text('All Categories'));
+	for (var i = 0; i < itemCategories.length; i++) {
+		var c = itemCategories[i];
+		$sel.append($('<option>').val(c.index).text(c.index + ' - ' + c.name));
+	}
+}
+
+function filterItems(selId, catSelId, searchId) {
+	var catVal = $(catSelId).val();
+	var search = $(searchId).val().toLowerCase().trim();
+	var $sel = $(selId).empty();
+	var filtered = allItemsData.filter(function(it) {
+		if (catVal !== '' && String(it.catIndex) !== catVal) return false;
+		if (search && it.name.toLowerCase().indexOf(search) === -1) return false;
+		return true;
+	});
+	var groups = {};
+	for (var i = 0; i < filtered.length; i++) {
+		var it = filtered[i];
+		if (!groups[it.category]) groups[it.category] = [];
+		groups[it.category].push(it);
+	}
+	var cats = Object.keys(groups).sort();
+	for (var c = 0; c < cats.length; c++) {
+		var $g = $('<optgroup>').attr('label', cats[c]);
+		var items = groups[cats[c]];
+		for (var j = 0; j < items.length; j++) {
+			$g.append($('<option>').val(items[j].code).text(items[j].name + ' (' + items[j].catIndex + ':' + items[j].itemIndex + ')'));
+		}
+		$sel.append($g);
+	}
+}
+
+function findItem(code) {
+	for (var i = 0; i < allItemsData.length; i++) {
+		if (allItemsData[i].code === code) return allItemsData[i];
+	}
+	return null;
+}
+
+function updateExcLabels(wellId, catIndex, itemName) {
+	var labels = getExcLabels(catIndex, itemName);
+	$('#' + wellId + ' [data-idx]').each(function() {
+		$(this).parent().find('.exc-lbl').text(labels[parseInt($(this).data('idx'))]);
+	});
+}
+
+function updateAncientSelect(selId, itemCode) {
+	var $sel = $('#' + selId).empty().append($('<option>').val(0).text('None'));
+	var types = ancientMapData[String(itemCode)];
+	if (types && types.length) {
+		for (var i = 0; i < types.length; i++) {
+			var t = types[i];
+			var base = ANCIENT_BASES[t];
+			$sel.append($('<option>').val(base | 4).text('Type ' + t + ' Stat+5'));
+			$sel.append($('<option>').val(base | 8).text('Type ' + t + ' Stat+10'));
+			$sel.append($('<option>').val(base | 12).text('Type ' + t + ' Stat+15'));
+		}
+	}
+}
+
+function onItemChange(selId, wellId, ancientSelId) {
+	var code = parseInt($(selId).val());
+	var item = findItem(code);
+	if (item) {
+		updateExcLabels(wellId, item.catIndex, item.name);
+		updateAncientSelect(ancientSelId, code);
+	}
+}
+
+// ── Init ──
 function _ciInit() {
 	$('#searchAccountForm').on('submit', function(e) {
 		e.preventDefault();
@@ -636,21 +702,31 @@ function _ciInit() {
 			if (!r.characters.length) { h = '<p class="text-muted">No characters found.</p>'; }
 			else {
 				h = '<table class="table table-striped table-condensed"><thead><tr><th>Name</th><th>GUID</th><th>Class</th><th>Level</th><th></th></tr></thead><tbody>';
-				for (var i=0; i<r.characters.length; i++) {
+				for (var i = 0; i < r.characters.length; i++) {
 					var c = r.characters[i];
-					h += '<tr><td>'+escHtml(c.name)+'</td><td>'+c.guid+'</td><td>'+c['class']+'</td><td>'+c.level+'</td>';
-					h += '<td><button class="btn btn-xs btn-warning" onclick="loadItems('+c.guid+',\''+escHtml(c.name)+'\')"><i class="fa fa-cubes"></i> Items</button></td></tr>';
+					h += '<tr><td>' + escHtml(c.name) + '</td><td>' + c.guid + '</td><td>' + c['class'] + '</td><td>' + c.level + '</td>';
+					h += '<td><button class="btn btn-xs btn-warning" onclick="loadItems(' + c.guid + ',\'' + escHtml(c.name) + '\')"><i class="fa fa-cubes"></i> Items</button></td></tr>';
 				}
 				h += '</tbody></table>';
 			}
 			$('#charactersList').html(h);
 			$('#charactersSection').show();
-		}).fail(function(){ alert('Request failed.'); });
+		}).fail(function() { alert('Request failed.'); });
 	});
-	$(document).on('change', '.exc-bit', function(){ syncExcBits('.exc-bit','editNewExc'); });
-	$(document).on('change', '.add-exc-bit', function(){ syncExcBits('.add-exc-bit','addExc'); });
+	// Exc checkboxes sync
+	$(document).on('change', '.exc-bit', function() { syncExcBits('.exc-bit', 'editNewExc'); });
+	$(document).on('change', '.add-exc-bit', function() { syncExcBits('.add-exc-bit', 'addExc'); });
+	// Item filter events — Edit
+	$(document).on('change', '#editItemCat', function() { filterItems('#editNewItemCode', '#editItemCat', '#editItemSearch'); onItemChange('#editNewItemCode', 'editExcWell', 'editNewAncient'); });
+	$(document).on('input', '#editItemSearch', function() { filterItems('#editNewItemCode', '#editItemCat', '#editItemSearch'); });
+	$(document).on('change', '#editNewItemCode', function() { onItemChange('#editNewItemCode', 'editExcWell', 'editNewAncient'); });
+	// Item filter events — Add
+	$(document).on('change', '#addItemCat', function() { filterItems('#addItemCode', '#addItemCat', '#addItemSearch'); onItemChange('#addItemCode', 'addExcWell', 'addNewAncient'); });
+	$(document).on('input', '#addItemSearch', function() { filterItems('#addItemCode', '#addItemCat', '#addItemSearch'); });
+	$(document).on('change', '#addItemCode', function() { onItemChange('#addItemCode', 'addExcWell', 'addNewAncient'); });
 }
 
+// ── Load items for character ──
 function loadItems(guid, name) {
 	currentGuid = guid;
 	$('#itemsSection').hide();
@@ -660,58 +736,40 @@ function loadItems(guid, name) {
 		var h = '';
 		if (!r.items.length) { h = '<tr><td colspan="8" class="text-center text-muted">No items found.</td></tr>'; }
 		else {
-			for (var i=0; i<r.items.length; i++) {
+			for (var i = 0; i < r.items.length; i++) {
 				var it = r.items[i];
 				var itype = getItemType(it);
 				h += '<tr class="ci-item-row">';
-				h += '<td>'+i+'</td>';
-				h += '<td class="ci-item-name" data-toggle="popover" data-trigger="hover" data-placement="right" data-html="true" data-content="'+escHtml(buildItemTooltip(it))+'">';
-				h += '<strong>'+escHtml(it.itemName)+'</strong></td>';
-				h += '<td><span class="label label-info">+'+it.level+'</span></td>';
-				h += '<td><span class="ci-type-badge '+typeBadgeClass(itype)+'" data-toggle="popover" data-trigger="hover" data-placement="top" data-html="true" data-content="'+escHtml(buildTypeTooltip(it))+'">'+typeBadgeLabel(itype)+'</span></td>';
-				h += '<td>'+yesNo(it.skill)+'</td>';
-				h += '<td>'+yesNo(it.luck)+'</td>';
-				h += '<td>'+describeOption(it.option)+'</td>';
+				h += '<td>' + i + '</td>';
+				h += '<td class="ci-item-name" data-toggle="popover" data-trigger="hover" data-placement="right" data-html="true" data-content="' + escHtml(buildItemTooltip(it)) + '">';
+				h += '<strong>' + escHtml(it.itemName) + '</strong></td>';
+				h += '<td><span class="label label-info">+' + it.level + '</span></td>';
+				h += '<td><span class="ci-type-badge ' + typeBadgeClass(itype) + '" data-toggle="popover" data-trigger="hover" data-placement="top" data-html="true" data-content="' + escHtml(buildTypeTooltip(it)) + '">' + typeBadgeLabel(itype) + '</span></td>';
+				h += '<td>' + yesNo(it.skill) + '</td>';
+				h += '<td>' + yesNo(it.luck) + '</td>';
+				h += '<td>' + describeOption(it.option) + '</td>';
 				h += '<td>';
-				h += '<button class="btn btn-xs btn-primary" onclick=\'showEditModal('+JSON.stringify({i:i,c:it.itemCode,l:it.level,d:it.durability,s:it.skill,lk:it.luck,o:it.option,e:it.exc,a:it.ancient,n:it.itemName})+')\' title="Edit"><i class="fa fa-pencil"></i></button> ';
-				h += '<button class="btn btn-xs btn-danger" onclick="showDeleteModal('+i+',\''+escHtml(it.itemName)+' +'+it.level+'\')" title="Remove"><i class="fa fa-trash"></i></button>';
+				h += '<button class="btn btn-xs btn-primary" onclick=\'showEditModal(' + JSON.stringify({i:i, c:it.itemCode, l:it.level, d:it.durability, s:it.skill, lk:it.luck, o:it.option, e:it.exc, a:it.ancient, n:it.itemName, cat:it.catIndex}) + ')\' title="Edit"><i class="fa fa-pencil"></i></button> ';
+				h += '<button class="btn btn-xs btn-danger" onclick="showDeleteModal(' + i + ',\'' + escHtml(it.itemName) + ' +' + it.level + '\')" title="Remove"><i class="fa fa-trash"></i></button>';
 				h += '</td></tr>';
 			}
 		}
 		$('#itemsTableBody').html(h);
 		$('#itemsSection').show();
-		$('#itemsTable [data-toggle="popover"]').popover({container:'body'});
-	}).fail(function(){ alert('Request failed.'); });
+		$('#itemsTable [data-toggle="popover"]').popover({container: 'body'});
+	}).fail(function() { alert('Request failed.'); });
 }
 
-function loadItemSelect(cb) {
-	if (itemSelectLoaded) { if(cb) cb(); return; }
-	$.getJSON(baseAdminUrl + '&ajax=itemlist', function(r) {
-		if (!r.success) return;
-		itemSelectLoaded = true;
-		var g = {};
-		for (var i=0; i<r.items.length; i++) {
-			var it = r.items[i];
-			if (!g[it.category]) g[it.category] = [];
-			g[it.category].push(it);
-		}
-		var h = '';
-		var cats = Object.keys(g).sort();
-		for (var c=0; c<cats.length; c++) {
-			h += '<optgroup label="'+escHtml(cats[c])+'">';
-			for (var j=0; j<g[cats[c]].length; j++) {
-				var x = g[cats[c]][j];
-				h += '<option value="'+x.code+'">'+escHtml(x.name)+' ('+x.catIndex+':'+x.itemIndex+')</option>';
-			}
-			h += '</optgroup>';
-		}
-		$('#editNewItemCode, #addItemCode').html(h);
-		if(cb) cb();
-	});
-}
-
+// ── Edit modal ──
 function showEditModal(d) {
-	loadItemSelect(function() {
+	loadData(function() {
+		populateCatSelect('#editItemCat');
+		$('#editItemSearch').val('');
+		// Set category filter to match item
+		var item = findItem(d.c);
+		if (item) $('#editItemCat').val(item.catIndex);
+		filterItems('#editNewItemCode', '#editItemCat', '#editItemSearch');
+
 		$('#editCharGuid').val(currentGuid);
 		$('#editAccountName').val(currentAccountName);
 		$('#editItemIndex').val(d.i);
@@ -719,16 +777,22 @@ function showEditModal(d) {
 		$('#editNewItemCode').val(d.c);
 		$('#editNewLevel').val(d.l);
 		$('#editNewDurability').val(d.d);
-		$('#editNewSkill').val(d.s);
-		$('#editNewLuck').val(d.lk);
+		$('#editNewSkill').prop('checked', !!d.s);
+		$('#editNewLuck').prop('checked', !!d.lk);
 		$('#editNewOption').val(d.o);
-		$('#editNewAncient').val(d.a);
+
+		updateExcLabels('editExcWell', d.cat, d.n);
 		setExcBits('.exc-bit', d.e);
 		$('#editNewExc').val(d.e);
+
+		updateAncientSelect('editNewAncient', d.c);
+		$('#editNewAncient').val(d.a);
+
 		$('#editItemModal').modal('show');
 	});
 }
 
+// ── Delete modal ──
 function showDeleteModal(idx, name) {
 	$('#deleteCharGuid').val(currentGuid);
 	$('#deleteAccountName').val(currentAccountName);
@@ -737,19 +801,29 @@ function showDeleteModal(idx, name) {
 	$('#deleteItemModal').modal('show');
 }
 
+// ── Add modal ──
 function showAddItemModal() {
-	loadItemSelect(function() {
+	loadData(function() {
+		populateCatSelect('#addItemCat');
+		$('#addItemSearch').val('');
+		$('#addItemCat').val('');
+		filterItems('#addItemCode', '#addItemCat', '#addItemSearch');
+
 		$('#addItemForm')[0].reset();
 		$('#addCharGuid').val(currentGuid);
 		$('#addAccountName').val(currentAccountName);
 		setExcBits('.add-exc-bit', 0);
 		$('#addExc').val(0);
+
+		updateExcLabels('addExcWell', 0, '');
+		updateAncientSelect('addNewAncient', 0);
+
 		$('#addItemModal').modal('show');
 	});
 }
 
 (function() {
-	if (typeof $ !== 'undefined') { $(function(){ _ciInit(); }); }
-	else { document.addEventListener('DOMContentLoaded', function(){ if(typeof $!=='undefined') _ciInit(); }); }
+	if (typeof $ !== 'undefined') { $(function() { _ciInit(); }); }
+	else { document.addEventListener('DOMContentLoaded', function() { if (typeof $ !== 'undefined') _ciInit(); }); }
 })();
 </script>

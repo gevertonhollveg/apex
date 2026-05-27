@@ -51,6 +51,7 @@ $admincpSidebar = array(
 	), "fa-users"),
 	array("Character", array(
 		"searchcharacter" => "Search",
+		"characteritems" => "Item Inventory",
 		"editcharacter" => "", // HIDDEN
 	), "fa-user"),
 	array("Bans", array(

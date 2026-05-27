@@ -70,7 +70,7 @@ $ancientMap = loadAncientSetTypeMap(__ROOT_DIR__ . 'admincp/inc/item/ItemSetType
 
 echo '<h1 class="page-header">Character Item Inventory</h1>';
 
-// ═══════════ AJAX API ═══════════
+// ═══════════ AJAX GET API ═══════════
 if (isset($_GET['ajax'])) {
 	header('Content-Type: application/json; charset=utf-8');
 	while (ob_get_level()) ob_end_clean();
@@ -146,8 +146,11 @@ if (isset($_GET['ajax'])) {
 	die();
 }
 
-// ═══════════ POST ACTIONS ═══════════
+// ═══════════ POST ACTIONS (supports AJAX via _ajax param) ═══════════
 if (isset($_POST['item_action'])) {
+	$ajaxMode = isset($_POST['_ajax']);
+	$resultSuccess = false;
+	$resultMsg = '';
 	try {
 		$action = $_POST['item_action'];
 		if (!isset($_POST['char_guid']) || !is_numeric($_POST['char_guid'])) throw new Exception('Invalid character GUID.');
@@ -184,7 +187,7 @@ if (isset($_POST['item_action'])) {
 				$fields[10] = isset($_POST['new_luck']) ? 1 : 0;
 				if (isset($_POST['new_option']) && is_numeric($_POST['new_option'])) {
 					$v = (int)$_POST['new_option'];
-					if (!in_array($v, array(0, 4, 8, 12, 16))) throw new Exception('Option must be 0, 4, 8, 12 or 16.');
+					if (!in_array($v, array(0, 1, 2, 3, 4))) throw new Exception('Option must be 0, 1, 2, 3 or 4.');
 					$fields[11] = $v;
 				}
 				if (isset($_POST['new_exc']) && is_numeric($_POST['new_exc'])) {
@@ -194,7 +197,8 @@ if (isset($_POST['item_action'])) {
 				}
 				if (isset($_POST['new_ancient']) && is_numeric($_POST['new_ancient'])) $fields[13] = (int)$_POST['new_ancient'];
 				$allItems[$idx] = implode(';', $fields);
-				message('success', 'Item updated successfully.');
+				$resultMsg = 'Item updated successfully.';
+				$resultSuccess = true;
 				break;
 
 			case 'delete':
@@ -202,7 +206,8 @@ if (isset($_POST['item_action'])) {
 				$idx = (int)$_POST['item_index'];
 				if (!isset($allItems[$idx])) throw new Exception('Item not found at position ' . $idx . '.');
 				array_splice($allItems, $idx, 1);
-				message('success', 'Item removed successfully.');
+				$resultMsg = 'Item removed successfully.';
+				$resultSuccess = true;
 				break;
 
 			case 'add':
@@ -218,7 +223,7 @@ if (isset($_POST['item_action'])) {
 				$addOpt    = isset($_POST['add_option']) && is_numeric($_POST['add_option']) ? (int)$_POST['add_option'] : 0;
 				$addExc    = isset($_POST['add_exc']) && is_numeric($_POST['add_exc']) ? (int)$_POST['add_exc'] : 0;
 				$addAnc    = isset($_POST['add_ancient']) && is_numeric($_POST['add_ancient']) ? (int)$_POST['add_ancient'] : 0;
-				if (!in_array($addOpt, array(0, 4, 8, 12, 16))) throw new Exception('Option must be 0, 4, 8, 12 or 16.');
+				if (!in_array($addOpt, array(0, 1, 2, 3, 4))) throw new Exception('Option must be 0, 1, 2, 3 or 4.');
 				if ($addExc < 0 || $addExc > 63) throw new Exception('Excellent must be 0-63.');
 				$addSerial = mt_rand(10000, 99999);
 				$newFields = array(
@@ -228,23 +233,38 @@ if (isset($_POST['item_action'])) {
 					0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 0, 0, 254, 254, 254, 254
 				);
 				$allItems[] = implode(';', $newFields);
-				message('success', 'Item added successfully.');
+				$resultMsg = 'Item added successfully.';
+				$resultSuccess = true;
 				break;
 			default:
 				throw new Exception('Invalid action.');
 		}
-		$newData = '';
-		foreach ($allItems as $i => $item) {
-			if ($i > 0) $newData .= ",\n";
-			$newData .= '{' . $item . '}';
-		}
-		if ($row) {
-			$dB->query("UPDATE character_item_inventory SET InventoryData = ? WHERE GUID = ?", array($newData, $guid));
-		} else {
-			$dB->query("INSERT INTO character_item_inventory (GUID, InventoryData) VALUES (?, ?)", array($guid, $newData));
+
+		if ($resultSuccess) {
+			$newData = '';
+			foreach ($allItems as $i => $item) {
+				if ($i > 0) $newData .= ",\n";
+				$newData .= '{' . $item . '}';
+			}
+			if ($row) {
+				$dB->query("UPDATE character_item_inventory SET InventoryData = ? WHERE GUID = ?", array($newData, $guid));
+			} else {
+				$dB->query("INSERT INTO character_item_inventory (GUID, InventoryData) VALUES (?, ?)", array($guid, $newData));
+			}
 		}
 	} catch (Exception $ex) {
-		message('error', $ex->getMessage());
+		$resultMsg = $ex->getMessage();
+		$resultSuccess = false;
+	}
+
+	if ($ajaxMode) {
+		header('Content-Type: application/json; charset=utf-8');
+		while (ob_get_level()) ob_end_clean();
+		echo json_encode(array('success' => $resultSuccess, 'message' => $resultMsg));
+		die();
+	} else {
+		if ($resultSuccess) message('success', $resultMsg);
+		else message('error', $resultMsg);
 	}
 }
 ?>
@@ -280,6 +300,7 @@ if (isset($_POST['item_action'])) {
 .ci-badge-exc { background:#5cb85c; color:#fff; }
 .ci-badge-ancient { background:#5bc0de; color:#1a5632; font-weight:bold; }
 .ci-badge-socket { background:#9b59b6; color:#fff; }
+.ci-badge-wing { background:#f0ad4e; color:#fff; }
 .ci-item-row td { vertical-align:middle!important; }
 .ci-item-name { cursor:default; }
 .ci-type-badge { cursor:default; font-size:11px; padding:3px 8px; display:inline-block; border-radius:3px; }
@@ -289,11 +310,13 @@ if (isset($_POST['item_action'])) {
 .ci-exc-well .checkbox { margin:3px 0; }
 .ci-exc-well .checkbox label { font-weight:normal; font-size:12px; }
 .ci-item-filter { margin-bottom:6px; }
+#itemsMessage .alert { margin-bottom:10px; }
 </style>
 
 <!-- Items Table -->
 <div class="row" id="itemsSection" style="display:none;">
 	<div class="col-md-12">
+		<div id="itemsMessage"></div>
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<i class="fa fa-cubes"></i> Items for: <strong id="characterLabel"></strong>
@@ -326,11 +349,12 @@ if (isset($_POST['item_action'])) {
 <div class="modal fade" id="editItemModal" tabindex="-1">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form method="post" id="editItemForm">
+			<form id="editItemForm">
 				<input type="hidden" name="item_action" value="edit">
 				<input type="hidden" name="char_guid" id="editCharGuid">
 				<input type="hidden" name="account_name" id="editAccountName">
 				<input type="hidden" name="item_index" id="editItemIndex">
+				<input type="hidden" name="_ajax" value="1">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
 					<h4 class="modal-title"><i class="fa fa-pencil"></i> Edit Item</h4>
@@ -357,7 +381,7 @@ if (isset($_POST['item_action'])) {
 						<div class="col-sm-3"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="new_durability" id="editNewDurability" min="0" max="255"></div></div>
 						<div class="col-sm-3"><div class="form-group"><label>Option</label>
 							<select class="form-control" name="new_option" id="editNewOption">
-								<option value="0">0</option><option value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option>
+								<option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
 							</select>
 						</div></div>
 						<div class="col-sm-3"><div class="form-group"><label>Ancient</label>
@@ -398,10 +422,11 @@ if (isset($_POST['item_action'])) {
 <div class="modal fade" id="addItemModal" tabindex="-1">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<form method="post" id="addItemForm">
+			<form id="addItemForm">
 				<input type="hidden" name="item_action" value="add">
 				<input type="hidden" name="char_guid" id="addCharGuid">
 				<input type="hidden" name="account_name" id="addAccountName">
+				<input type="hidden" name="_ajax" value="1">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
 					<h4 class="modal-title"><i class="fa fa-plus"></i> Add Item</h4>
@@ -432,7 +457,7 @@ if (isset($_POST['item_action'])) {
 						<div class="col-sm-3"><div class="form-group"><label>Durability</label><input type="number" class="form-control" name="add_durability" id="addDurability" min="0" max="255" value="255"></div></div>
 						<div class="col-sm-3"><div class="form-group"><label>Option</label>
 							<select class="form-control" name="add_option" id="addOptionVal">
-								<option value="0">0</option><option value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option>
+								<option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
 							</select>
 						</div></div>
 						<div class="col-sm-3"><div class="form-group"><label>Ancient</label>
@@ -473,11 +498,12 @@ if (isset($_POST['item_action'])) {
 <div class="modal fade" id="deleteItemModal" tabindex="-1">
 	<div class="modal-dialog modal-sm">
 		<div class="modal-content">
-			<form method="post">
+			<form id="deleteItemForm">
 				<input type="hidden" name="item_action" value="delete">
 				<input type="hidden" name="char_guid" id="deleteCharGuid">
 				<input type="hidden" name="account_name" id="deleteAccountName">
 				<input type="hidden" name="item_index" id="deleteItemIndex">
+				<input type="hidden" name="_ajax" value="1">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">&times;</button>
 					<h4 class="modal-title" style="color:#c9302c;"><i class="fa fa-trash"></i> Remove Item</h4>
@@ -498,6 +524,7 @@ if (isset($_POST['item_action'])) {
 <script>
 var baseAdminUrl = '<?php echo admincp_base("characteritems"); ?>';
 var currentGuid = null;
+var currentCharName = '';
 var currentAccountName = '';
 var allItemsData = [];
 var itemCategories = [];
@@ -521,8 +548,28 @@ var EXC_DEF = [
 	'Increase Max Mana +4%',
 	'Increase Max HP +4%'
 ];
-
+var EXC_WING_L2 = [
+	'+50 HP Max + (Wing Lv x 5)',
+	'+50 Mana Max + (Wing Lv x 5)',
+	'Ignores 3% enemy defense',
+	'-', '-', '-'
+];
+var EXC_WING_L3 = [
+	'Ignores 5% enemy defense',
+	'Reflects 5% total damage',
+	'Recovers 5% HP total',
+	'Recovers 5% Mana total',
+	'-', '-'
+];
+var EXC_WING_MONSTER = [
+	'Ignores enemy defense',
+	'Recovers HP total',
+	'-', '-', '-', '-'
+];
 var ANCIENT_BASES = {1: 1, 2: 2, 3: 16};
+var PENTA_ELEMENTS = {1:'Fire', 2:'Water', 3:'Earth', 4:'Wind', 5:'Dark'};
+var SOCKET_NONE = 65535;
+var SOCKET_EMPTY = 65534;
 
 // ── Helpers ──
 function isAttackExc(catIndex, itemName) {
@@ -531,15 +578,36 @@ function isAttackExc(catIndex, itemName) {
 	if (itemName && itemName.toLowerCase().indexOf('pendant') !== -1) return true;
 	return false;
 }
+function isWingItem(catIndex) { return catIndex === 12; }
+
 function getExcLabels(catIndex, itemName) {
+	if (isWingItem(catIndex)) return EXC_WING_L2;
 	return isAttackExc(catIndex, itemName) ? EXC_ATK : EXC_DEF;
 }
 function describeExcForItem(val, catIndex, itemName) {
 	if (!val) return '';
-	var labels = getExcLabels(catIndex, itemName);
+	if (isWingItem(catIndex)) return describeExcWing(val);
+	var labels = isAttackExc(catIndex, itemName) ? EXC_ATK : EXC_DEF;
 	var opts = [];
 	for (var i = 0; i < 6; i++) { if (val & (1 << i)) opts.push(labels[i]); }
 	return opts.join('<br>');
+}
+function describeExcWing(val) {
+	if (!val) return '';
+	var lines = [];
+	var sets = [
+		{name:'Lvl2', labels: EXC_WING_L2, bits:3},
+		{name:'Lvl3', labels: EXC_WING_L3, bits:4},
+		{name:'Monster', labels: EXC_WING_MONSTER, bits:2}
+	];
+	for (var s = 0; s < sets.length; s++) {
+		var opts = [];
+		for (var i = 0; i < sets[s].bits; i++) {
+			if (val & (1 << i)) opts.push(sets[s].labels[i]);
+		}
+		if (opts.length) lines.push('<b>' + sets[s].name + ':</b> ' + opts.join(', '));
+	}
+	return lines.join('<br>');
 }
 function describeAncient(val) {
 	if (!val) return '';
@@ -550,13 +618,29 @@ function describeAncient(val) {
 	return t + (s ? ' ' + s : '');
 }
 function describeOption(val) { return String(val); }
-function describeSockets(arr) {
-	var a = [];
-	for (var i = 0; i < arr.length; i++) { if (arr[i] !== 65535) a.push('S' + (i+1) + ':' + arr[i]); }
-	return a.length ? a.join(', ') : '';
+function describeSocketSlot(val) {
+	if (val === SOCKET_NONE) return null;
+	if (val === SOCKET_EMPTY) return 'Empty';
+	return 'Seed #' + (val % 50) + ' Lv' + Math.floor(val / 50);
+}
+function describeSocketsFull(arr) {
+	var lines = [];
+	for (var i = 0; i < arr.length; i++) {
+		var desc = describeSocketSlot(arr[i]);
+		if (desc !== null) lines.push('Slot ' + (i + 1) + ': ' + desc);
+	}
+	return lines.length ? lines.join('<br>') : '';
 }
 function countSockets(arr) {
-	var n = 0; for (var i = 0; i < arr.length; i++) if (arr[i] !== 65535) n++; return n;
+	var n = 0; for (var i = 0; i < arr.length; i++) if (arr[i] !== SOCKET_NONE) n++; return n;
+}
+function countActiveSockets(arr) {
+	var n = 0; for (var i = 0; i < arr.length; i++) if (arr[i] !== SOCKET_NONE && arr[i] !== SOCKET_EMPTY) n++; return n;
+}
+function getPentagramElement(socketBonus) {
+	if (socketBonus === 255) return null;
+	var attr = socketBonus & 0x0F;
+	return PENTA_ELEMENTS[attr] || null;
 }
 function yesNo(v) { return v ? '<span class="label label-success">Y</span>' : '<span class="label label-default">N</span>'; }
 function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
@@ -565,25 +649,33 @@ function syncExcBits(sel, hid) { var v = 0; $(sel).each(function(){ if (this.che
 function setExcBits(sel, val) { $(sel).each(function(){ this.checked = !!(val & parseInt($(this).data('bit'))); }); }
 
 function getItemType(it) {
+	if (isWingItem(it.catIndex)) return 'wing';
 	if (it.ancient) return 'ancient';
 	if (countSockets(it.sockets) > 0) return 'socket';
 	if (it.exc) return 'exc';
 	return 'normal';
 }
 function typeBadgeClass(type) {
-	switch(type) { case 'exc': return 'ci-badge-exc'; case 'ancient': return 'ci-badge-ancient'; case 'socket': return 'ci-badge-socket'; default: return 'ci-badge-normal'; }
+	switch(type) { case 'exc': return 'ci-badge-exc'; case 'ancient': return 'ci-badge-ancient'; case 'socket': return 'ci-badge-socket'; case 'wing': return 'ci-badge-wing'; default: return 'ci-badge-normal'; }
 }
 function typeBadgeLabel(type) {
-	switch(type) { case 'exc': return 'Excellent'; case 'ancient': return 'Ancient'; case 'socket': return 'Socket'; default: return 'Normal'; }
+	switch(type) { case 'exc': return 'Excellent'; case 'ancient': return 'Ancient'; case 'socket': return 'Socket'; case 'wing': return 'Wings'; default: return 'Normal'; }
 }
 function buildTypeTooltip(it) {
+	var type = getItemType(it);
 	var lines = [];
 	if (it.exc) lines.push(describeExcForItem(it.exc, it.catIndex, it.itemName));
 	if (it.ancient) lines.push('<b>Ancient:</b> ' + describeAncient(it.ancient));
-	var sk = describeSockets(it.sockets);
-	if (sk) lines.push('<b>Sockets:</b> ' + sk);
-	if (it.socketBonus && it.socketBonus !== 255) lines.push('<b>Socket Bonus:</b> ' + it.socketBonus);
-	return lines.length ? lines.join('<br>') : typeBadgeLabel(getItemType(it));
+	var sockDesc = describeSocketsFull(it.sockets);
+	if (sockDesc) {
+		var total = countSockets(it.sockets);
+		var active = countActiveSockets(it.sockets);
+		lines.push('<b>Sockets (' + active + '/' + total + '):</b><br>' + sockDesc);
+	}
+	var pElem = getPentagramElement(it.socketBonus);
+	if (pElem) lines.push('<b>Element:</b> ' + pElem);
+	else if (it.socketBonus !== 255 && countSockets(it.sockets) > 0) lines.push('<b>Socket Bonus:</b> ' + it.socketBonus);
+	return lines.length ? lines.join('<br>') : typeBadgeLabel(type);
 }
 function buildItemTooltip(it) {
 	var lines = [];
@@ -593,6 +685,12 @@ function buildItemTooltip(it) {
 	lines.push('<span class="ci-pop-label">Durability:</span> <span class="ci-pop-val">' + it.durability + '</span>');
 	lines.push('<span class="ci-pop-label">Serial:</span> <span class="ci-pop-val">' + it.serial + '</span>');
 	return '<div class="ci-popover-content">' + lines.join('<br>') + '</div>';
+}
+
+function showItemsMsg(type, msg) {
+	var cls = type === 'success' ? 'alert-success' : 'alert-danger';
+	$('#itemsMessage').html('<div class="alert ' + cls + ' alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button>' + escHtml(msg) + '</div>');
+	setTimeout(function() { $('#itemsMessage .alert').fadeOut(); }, 4000);
 }
 
 // ── Data loading ──
@@ -660,7 +758,11 @@ function findItem(code) {
 function updateExcLabels(wellId, catIndex, itemName) {
 	var labels = getExcLabels(catIndex, itemName);
 	$('#' + wellId + ' [data-idx]').each(function() {
-		$(this).parent().find('.exc-lbl').text(labels[parseInt($(this).data('idx'))]);
+		var idx = parseInt($(this).data('idx'));
+		var lbl = labels[idx] || '-';
+		var $row = $(this).closest('.checkbox');
+		$(this).parent().find('.exc-lbl').text(lbl);
+		if (lbl === '-') $row.hide(); else $row.show();
 	});
 }
 
@@ -685,6 +787,26 @@ function onItemChange(selId, wellId, ancientSelId) {
 		updateExcLabels(wellId, item.catIndex, item.name);
 		updateAncientSelect(ancientSelId, code);
 	}
+}
+
+// ── AJAX form submit helper ──
+function ajaxSubmitForm(formId, modalId) {
+	var $form = $(formId);
+	var data = $form.serialize();
+	var $btn = $form.find('[type="submit"]').prop('disabled', true);
+	$.post(baseAdminUrl, data, function(r) {
+		$btn.prop('disabled', false);
+		if (r.success) {
+			$(modalId).modal('hide');
+			showItemsMsg('success', r.message);
+			loadItems(currentGuid, currentCharName);
+		} else {
+			alert(r.message || 'Error');
+		}
+	}, 'json').fail(function() {
+		$btn.prop('disabled', false);
+		alert('Request failed.');
+	});
 }
 
 // ── Init ──
@@ -724,12 +846,18 @@ function _ciInit() {
 	$(document).on('change', '#addItemCat', function() { filterItems('#addItemCode', '#addItemCat', '#addItemSearch'); onItemChange('#addItemCode', 'addExcWell', 'addNewAncient'); });
 	$(document).on('input', '#addItemSearch', function() { filterItems('#addItemCode', '#addItemCat', '#addItemSearch'); });
 	$(document).on('change', '#addItemCode', function() { onItemChange('#addItemCode', 'addExcWell', 'addNewAncient'); });
+	// AJAX form submissions
+	$(document).on('submit', '#editItemForm', function(e) { e.preventDefault(); ajaxSubmitForm('#editItemForm', '#editItemModal'); });
+	$(document).on('submit', '#deleteItemForm', function(e) { e.preventDefault(); ajaxSubmitForm('#deleteItemForm', '#deleteItemModal'); });
+	$(document).on('submit', '#addItemForm', function(e) { e.preventDefault(); ajaxSubmitForm('#addItemForm', '#addItemModal'); });
 }
 
 // ── Load items for character ──
 function loadItems(guid, name) {
 	currentGuid = guid;
-	$('#itemsSection').hide();
+	currentCharName = name;
+	// Destroy existing popovers before re-rendering
+	$('#itemsTable [data-toggle="popover"]').popover('destroy');
 	$.getJSON(baseAdminUrl + '&ajax=items&guid=' + guid, function(r) {
 		if (!r.success) { alert(r.message); return; }
 		$('#characterLabel').text(name + ' (GUID: ' + guid + ')');
@@ -765,7 +893,6 @@ function showEditModal(d) {
 	loadData(function() {
 		populateCatSelect('#editItemCat');
 		$('#editItemSearch').val('');
-		// Set category filter to match item
 		var item = findItem(d.c);
 		if (item) $('#editItemCat').val(item.catIndex);
 		filterItems('#editNewItemCode', '#editItemCat', '#editItemSearch');
